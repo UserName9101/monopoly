@@ -26,7 +26,7 @@ app.use(cors());
 app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
-initDb();
+initDb().catch(console.error);
 
 const JWT_SECRET = "secret_key";
 const rooms = new Map<string, Room>();
