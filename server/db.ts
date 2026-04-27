@@ -30,7 +30,7 @@ export const schema = { usersTable, matchesTable };
 export const db = drizzle(sqlClient, { schema });
 
 export async function initDb() {
-  await sqlClient(`
+  await sqlClient`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -41,14 +41,16 @@ export async function initDb() {
       wins INTEGER DEFAULT 0,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
-  `);
-  await sqlClient(`
+  `;
+  
+  await sqlClient`
     CREATE TABLE IF NOT EXISTS matches (
       id TEXT PRIMARY KEY,
       winner_id TEXT REFERENCES users(id),
       start_time TIMESTAMPTZ NOT NULL,
       end_time TIMESTAMPTZ
     )
-  `);
+  `;
+  
   console.log('[DB] Neon PostgreSQL initialized');
 }
