@@ -355,88 +355,98 @@ style={styles.btnSecondary}
 </div>
 )}
 {isInRoom && !isGameStarted && (
-<div style={{
-maxWidth: 820,
-margin: '0 auto',
-padding: '32px 20px',
-width: '100%',
-boxSizing: 'border-box',
-}}>
-<div style={styles.lobbyList}>
-<h3 style={{ margin: '0 0 20px 0', fontSize: '20px', color: '#eee' }}>
-Игроки в комнате ({players.length}/{players.length > 4 ? 8 : 4})
-</h3>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-{players.map((p, i) => {
-const isMe = p.userId === myProfile?.id;
-const piece = roomPieces[p.userId] || 'hat';
-const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
-return (
-<div key={p.userId} style={{
-display: 'flex',
-alignItems: 'center',
-gap: 14,
-padding: '12px 16px',
-backgroundColor: '#252525',
-borderRadius: 12,
-border: isMe ? `1px solid ${color}44` : '1px solid transparent',
-}}>
-<img src={p.avatarUrl} style={{
-width: 40, height: 40, borderRadius: '50%', objectFit: 'cover',
-border: `2px solid ${color}`,
-}} alt="" />
-<PieceToken pieceId={piece} color={color} size={20} />
-<div style={{ flex: 1 }}>
-<div style={{ fontWeight: 600, color: '#eee', fontSize: 15 }}>
-{p.displayName}
-{isMe && <span style={{ fontSize: 12, color: color, marginLeft: 8 }}>Вы</span>}
-</div>
-{!p.isOnline && (
-<div style={{ fontSize: 12, color: '#666' }}>Офлайн</div>
-)}
-</div>
-<div style={{
-width: 8, height: 8, borderRadius: '50%',
-background: p.isOnline ? '#28a745' : '#555',
-}} />
-</div>
-);
-})}
-{Array.from({ length: Math.max(0, (players.length <= 4 ? 4 : 8) - players.length) }).map((_, i) => (
-<div key={`empty-${i}`} style={{
-display: 'flex',
-alignItems: 'center',
-gap: 14,
-padding: '12px 16px',
-backgroundColor: '#1a1a1a',
-borderRadius: 12,
-border: '1px dashed #333',
-opacity: 0.4,
-}}>
-<div style={{ width: 40, height: 40, borderRadius: '50%', background: '#333' }} />
-<div style={{ color: '#555', fontSize: 14 }}>Ожидание игрока...</div>
-</div>
-))}
-</div>
-{myProfile && (
-<div style={{
-padding: '16px',
-backgroundColor: '#1e1e1e',
-borderRadius: 12,
-border: '1px solid #333',
-}}>
-<PieceSelector
-selectedPiece={selectedPiece}
-playerIndex={players.findIndex(p => p.userId === myProfile.id)}
-onChange={handleSelectPiece}
-takenPieces={Object.entries(roomPieces)
-.filter(([uid]) => uid !== myProfile.id)
-.map(([, piece]) => piece)}
-/>
-</div>
-)}
-</div>
-</div>
+  <div style={{
+    maxWidth: 820,
+    margin: "0 auto",
+    padding: "32px 20px",
+    width: "100%",
+    boxSizing: "border-box",
+  }}>
+    {/* Список игроков в комнате */}
+    <div style={styles.lobbyList}>
+      <h3 style={{ margin: "0 0 20px 0", fontSize: "20px", color: "#eee" }}>
+        Игроки в комнате ({players.length}/{createMode === "MEGA" ? 8 : 4})
+      </h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+        {players.map((p, i) => {
+          const isMe = p.userId === myProfile?.id;
+          const piece = roomPieces[p.userId] || "hat";
+          // Цвет берем по индексу, но для MEGA режима цветов должно хватать (нужно убедиться в массиве PLAYER_COLORS)
+          const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+          return (
+            <div key={p.userId} style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "12px 16px",
+              backgroundColor: "#252525",
+              borderRadius: 12,
+              border: isMe ? `1px solid ${color}44` : "1px solid transparent",
+            }}>
+              <img src={p.avatarUrl} style={{
+                width: 40, height: 40, borderRadius: "50%", objectFit: "cover",
+                border: `2px solid ${color}`,
+              }} alt="" />
+              <PieceToken pieceId={piece} color={color} size={20} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, color: "#eee", fontSize: 15 }}>
+                  {p.displayName}
+                  {isMe && <span style={{ fontSize: 12, color: color, marginLeft: 8 }}>Вы</span>}
+                </div>
+                {!p.isOnline && (
+                  <div style={{ fontSize: 12, color: "#666" }}>Офлайн</div>
+                )}
+              </div>
+              <div style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: p.isOnline ? "#28a745" : "#555",
+              }} />
+            </div>
+          );
+        })}
+        
+        {/* Пустые слоты — ТЕПЕРЬ ПРАВИЛЬНО СЧИТАЕМ ДО 8 В РЕЖИМЕ MEGA */}
+        {Array.from({ 
+          length: Math.max(0, (createMode === "MEGA" ? 8 : 4) - players.length) 
+        }).map((_, i) => (
+          <div key={`empty-${i}`} style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: "12px 16px",
+            backgroundColor: "#1a1a1a",
+            borderRadius: 12,
+            border: "1px dashed #333",
+            opacity: 0.4,
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#333" }} />
+            <div style={{ color: "#555", fontSize: 14 }}>
+              Ожидание игрока... ({players.length + i + 1}/{createMode === "MEGA" ? 8 : 4})
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Выбор фишки */}
+      {myProfile && (
+        <div style={{
+          padding: "16px",
+          backgroundColor: "#1e1e1e",
+          borderRadius: 12,
+          border: "1px solid #333",
+        }}>
+          <PieceSelector
+            selectedPiece={selectedPiece}
+            playerIndex={players.findIndex(p => p.userId === myProfile.id)}
+            onChange={handleSelectPiece}
+            takenPieces={Object.entries(roomPieces)
+              .filter(([uid]) => uid !== myProfile.id)
+              .map(([, piece]) => piece)}
+          />
+        </div>
+      )}
+    </div>
+  </div>
 )}
 {isInRoom && isGameStarted && (
 <div ref={gameCanvasRef} style={styles.gameCanvasContainer}>
