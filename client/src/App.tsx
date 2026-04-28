@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { io, Socket } from "socket.io-client";
 import Board from "./Board";
-import PieceSelector, { PieceId, PieceToken, PIECES } from "./components/PieceSelector";
+import PieceSelector, { PieceToken, PIECES } from "./components/PieceSelector";
 import type { PieceId } from "./components/PieceSelector";
 import WinScreen from "./components/WinScreen";
 import type {
