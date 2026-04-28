@@ -127,4 +127,5 @@ pendingContracts: ContractProposal[];
 pausedTurnRemaining?: number;
 busTicketsDeck: number;
 cardDeck: CardDeck;
+roomPieces?: Record<string, string>;
 };

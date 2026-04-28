@@ -462,7 +462,8 @@ status: "LOBBY", hostId: socket.id, settings: fs, engine: createEngine(fs.mode),
 board: bb.map((c, idx) => ({ ...c, position: idx, ownerId: undefined, houses: 0, isMortgaged: false })),
 pendingContracts: [], busTicketsDeck: 100,
 cardDeck: { chance: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], chest: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] },
-turnTimer: undefined, phaseTimer: undefined, auctionTimer: undefined
+turnTimer: undefined, phaseTimer: undefined, auctionTimer: undefined,
+roomPieces: {}
 };
 rooms.set(rid, r); socket.join(rid);
 socket.emit("room_created", getSafeRoom(r)); io.to(rid).emit("state_update", r.gameState);
@@ -478,6 +479,9 @@ if (r.players.length >= r.settings.maxPlayers) return socket.emit("join_error", 
 r.players.push({ userId: socket.data.userId, socketId: socket.id, displayName: socket.data.profile.displayName, avatarUrl: socket.data.profile.avatarUrl, isOnline: true });
 r.gameState.players.push({ userId: socket.data.userId, position: 0, money: 2500, isBankrupt: false, busTickets: 0 });
 socket.join(rid); socket.emit("room_joined", getSafeRoom(r)); io.to(rid).emit("room_updated", getSafeRoom(r)); io.to(rid).emit("state_update", r.gameState);
+if (r.roomPieces && Object.keys(r.roomPieces).length > 0) {
+  socket.emit("room_pieces", r.roomPieces);
+}
 });
 
 socket.on("leave_room", () => {
@@ -499,7 +503,22 @@ socket.emit("left_room_success");
 socket.on("start_game", () => {
 const r = Array.from(rooms.values()).find(rm => rm.players.some(p => p.socketId === socket.id));
 if (!r || r.hostId !== socket.id || r.gameState.players.length < 2) return;
-r.status = "PLAYING"; r.gameState.currentPlayerIndex = 0; r.gameState.currentPhase = "ACTIONS"; r.gameState.activeAction = { type: "ROLL" }; r.gameState.contractsUsedThisTurn = 0; r.gameState.pendingMrEffect = false; r.gameState.thisRollWasDoubles = false; r.gameState.consecutiveDoubles = 0; r.gameState.forcedBalanceGroupId = null; r.gameState.pendingBalanceResolveAction = null; r.gameState.pendingBusChoice = false; r.gameState.pendingBusBaseMove = undefined; r.gameState.pendingBusExtraMove = false;
+r.status = "PLAYING";
+
+// Рандомизация порядка игроков
+const shuffled = [...r.gameState.players];
+for (let i = shuffled.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+}
+r.gameState.players = shuffled;
+
+// Синхронизировать порядок RoomPlayer с gameState (для правильных цветов)
+r.players = shuffled.map(sp =>
+  r.players.find(rp => rp.userId === sp.userId)!
+).filter(Boolean);
+
+r.gameState.currentPlayerIndex = 0; r.gameState.currentPhase = "ACTIONS"; r.gameState.activeAction = { type: "ROLL" }; r.gameState.contractsUsedThisTurn = 0; r.gameState.pendingMrEffect = false; r.gameState.thisRollWasDoubles = false; r.gameState.consecutiveDoubles = 0; r.gameState.forcedBalanceGroupId = null; r.gameState.pendingBalanceResolveAction = null; r.gameState.pendingBusChoice = false; r.gameState.pendingBusBaseMove = undefined; r.gameState.pendingBusExtraMove = false;
 startPhaseTimer(r.id, "ACTIONS"); io.to(r.id).emit("game_started", r.gameState);
 });
 
@@ -1023,6 +1042,16 @@ socket.on("surrender", () => {
 });
 
 socket.on("disconnect", () => { for (const [rid, r] of rooms.entries()) { const p = r.players.find(pl => pl.socketId === socket.id); if (p) { p.isOnline = false; io.to(rid).emit("room_updated", getSafeRoom(r)); break; } } });
+
+socket.on("select_piece", ({ piece }: { piece: string }) => {
+  const r = Array.from(rooms.values()).find(rm =>
+    rm.players.some(p => p.socketId === socket.id)
+  );
+  if (!r || r.status !== "LOBBY") return;
+  if (!r.roomPieces) r.roomPieces = {};
+  r.roomPieces[socket.data.userId] = piece;
+  io.to(r.id).emit("piece_selected", { userId: socket.data.userId, piece });
+});
 });
 
 server.listen(3000, () => console.log("Server started on 3000"));
