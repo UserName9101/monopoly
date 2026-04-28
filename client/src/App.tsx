@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { io, Socket } from "socket.io-client";
 import Board from "./Board";
+import PieceSelector, { PieceId, PieceToken, PIECES } from "./components/PieceSelector";
+import WinScreen from "./components/WinScreen";
 import type {
 UserProfile, RoomPlayer, PlayerState, GameState, BoardCell,
 ContractProposal, RoomPayload, RoomSummary, ChatMessage, AuctionState
@@ -47,6 +49,9 @@ const [selectedCellPositionForBuild, setSelectedCellPositionForBuild] = useState
 const [isContractPendingByMe, setIsContractPendingByMe] = useState(false);
 const [auctionState, setAuctionState] = useState<AuctionState | null>(null);
 const [auctionTimer, setAuctionTimer] = useState<number>(10);
+const [selectedPiece, setSelectedPiece] = useState<PieceId>("hat");
+const [roomPieces, setRoomPieces] = useState<Record<string, PieceId>>({});
+const [winData, setWinData] = useState<{ winnerId: string } | null>(null);
 const selectedCell = selectedCellPositionForBuild !== null ? board.find(c => c.position === selectedCellPositionForBuild) : null;
 const isMyProperty = selectedCell?.ownerId === myProfile?.id;
 const isBalancing = !!gameState?.forcedBalanceGroupId;
@@ -128,7 +133,7 @@ if (gameState && state.currentPlayerIndex !== gameState.currentPlayerIndex) { co
 };
 const onGameStarted = (state: GameState) => { setGameState(state); setRoomStatus("PLAYING"); addLog("Started!"); };
 const onJoinError = (m: string) => { alert(m); localStorage.removeItem("lastRoomId"); setRoomId(""); };
-const onGameFinished = () => { alert("Finished!"); setRoomId(""); setPlayers([]); setGameState(null); setBoard([]); setMessages([]); setIsContractPendingByMe(false); localStorage.removeItem("lastRoomId"); fetchMyProfile(); fetchRooms(); };
+const onGameFinished = ({ winnerId }: { winnerId: string }) => { setWinData({ winnerId }); };
 const onLeftSuccess = () => { localStorage.removeItem("lastRoomId"); setRoomId(""); setPlayers([]); setGameState(null); setBoard([]); setMessages([]); setIsContractPendingByMe(false); };
 const onContractError = (msg: string) => { addLog(msg, false); setActiveContract(null); setContractTimer(null); setSelectedProperties({ offered: [], requested: [] }); };
 const onContractProposed = (p: ContractProposal) => { if (!myProfile || p.proposerId === myProfile.id) return; if (p.targetId === myProfile.id) { setActiveContract(p); setSelectedProperties({ offered: p.offeredProperties, requested: p.requestedProperties }); setContractOfferedMoney(p.offeredMoney); setContractRequestedMoney(p.requestedMoney); setContractTimer(CONTRACT_RESPONSE_MS / 1000); const i = setInterval(() => setContractTimer(t => t === null || t <= 1 ? (clearInterval(i), null) : t - 1), 1000); return () => clearInterval(i); } };
@@ -143,12 +148,16 @@ const onAuctionUpdate = (data: any) => { setAuctionState(prev => prev ? { ...pre
 const onAuctionEnded = (data: any) => { setAuctionState(null); setAuctionTimer(10); if (data.success) { addLog(`Аукцион завершен! ${data.winnerId === myProfile?.id ? "Вы выиграли" : `Победил ${players.find(p=>p.userId===data.winnerId)?.displayName || '???'}`} за $${data.price}`, false); } };
 const onAuctionError = (msg: string) => { setAuctionState(null); setAuctionTimer(10); addLog(msg, false); };
 const onAuctionMessage = ({ message }: any) => addLog(message, false);
+const onPieceSelected = ({ userId, piece }: { userId: string; piece: PieceId }) => { setRoomPieces(prev => ({ ...prev, [userId]: piece })); };
+const onRoomPieces = (pieces: Record<string, PieceId>) => { setRoomPieces(pieces); };
 
 socket.on("your_id", onYourId); socket.on("room_created", onRoomCreated); socket.on("room_joined", onRoomJoined); socket.on("room_updated", onRoomUpdated); socket.on("state_update", onStateUpdate); socket.on("game_started", onGameStarted); socket.on("join_error", onJoinError); socket.on("game_finished", onGameFinished); socket.on("left_room_success", onLeftSuccess); socket.on("contract_error", onContractError); socket.on("contract_proposed", onContractProposed); socket.on("contract_resolved", onContractResolved); socket.on("contract_expired", onContractExpired); socket.on("dice_rolled", onDiceRolled); socket.on("build_error", onBuildError); socket.on("sell_error", onSellError);
 socket.on("game_log", onGameLog);
 socket.on("auction_started", onAuctionStarted); socket.on("auction_update", onAuctionUpdate); socket.on("auction_ended", onAuctionEnded); socket.on("auction_error", onAuctionError); socket.on("auction_message", onAuctionMessage);
+socket.on("piece_selected", onPieceSelected);
+socket.on("room_pieces", onRoomPieces);
 
-return () => { socket.off("your_id", onYourId); socket.off("room_created", onRoomCreated); socket.off("room_joined", onRoomJoined); socket.off("room_updated", onRoomUpdated); socket.off("state_update", onStateUpdate); socket.off("game_started", onGameStarted); socket.off("join_error", onJoinError); socket.off("game_finished", onGameFinished); socket.off("left_room_success", onLeftSuccess); socket.off("contract_error", onContractError); socket.off("contract_proposed", onContractProposed); socket.off("contract_resolved", onContractResolved); socket.off("contract_expired", onContractExpired); socket.off("dice_rolled", onDiceRolled); socket.off("build_error", onBuildError); socket.off("sell_error", onSellError); socket.off("game_log", onGameLog); socket.off("auction_started", onAuctionStarted); socket.off("auction_update", onAuctionUpdate); socket.off("auction_ended", onAuctionEnded); socket.off("auction_error", onAuctionError); socket.off("auction_message", onAuctionMessage); };
+return () => { socket.off("your_id", onYourId); socket.off("room_created", onRoomCreated); socket.off("room_joined", onRoomJoined); socket.off("room_updated", onRoomUpdated); socket.off("state_update", onStateUpdate); socket.off("game_started", onGameStarted); socket.off("join_error", onJoinError); socket.off("game_finished", onGameFinished); socket.off("left_room_success", onLeftSuccess); socket.off("contract_error", onContractError); socket.off("contract_proposed", onContractProposed); socket.off("contract_resolved", onContractResolved); socket.off("contract_expired", onContractExpired); socket.off("dice_rolled", onDiceRolled); socket.off("build_error", onBuildError); socket.off("sell_error", onSellError); socket.off("game_log", onGameLog); socket.off("auction_started", onAuctionStarted); socket.off("auction_update", onAuctionUpdate); socket.off("auction_ended", onAuctionEnded); socket.off("auction_error", onAuctionError); socket.off("auction_message", onAuctionMessage); socket.off("piece_selected", onPieceSelected); socket.off("room_pieces", onRoomPieces); };
 }, [socket, gameState, players, roomId, myProfile, activeContract]);
 
 useEffect(() => { if (!auctionState) return; const i = setInterval(() => { if (auctionState.deadline) { const rem = Math.max(0, Math.ceil((auctionState.deadline - Date.now()) / 1000)); setAuctionTimer(rem); if (rem === 0) clearInterval(i); } }, 200); return () => clearInterval(i); }, [auctionState]);
@@ -168,6 +177,8 @@ const handleRollDice = () => { socket?.emit("roll_dice"); addLog("Rolling...", f
 const handleUseTicket = () => { socket?.emit("use_bus_ticket"); addLog("Используем Bus Ticket...", false); };
 const handleFinishGame = () => socket?.emit("finish_game");
 const handleLeaveRoom = () => { localStorage.removeItem("lastRoomId"); setRoomId(""); setPlayers([]); setGameState(null); setBoard([]); setMessages([]); setActiveCardIndex(null); setIsContractPendingByMe(false); socket?.emit("leave_room"); };
+const handleWinLeave = () => { setWinData(null); setRoomId(""); setPlayers([]); setGameState(null); setBoard([]); setMessages([]); setIsContractPendingByMe(false); localStorage.removeItem("lastRoomId"); fetchMyProfile(); fetchRooms(); };
+const handleSelectPiece = (piece: PieceId) => { setSelectedPiece(piece); socket?.emit("select_piece", { piece }); };
 const handleCardClick = (i: number) => setActiveCardIndex(p => p === i ? null : i);
 const getCurrentPlayerState = () => { if (!gameState || !myProfile) return null; return gameState.players[gameState.currentPlayerIndex].userId === myProfile.id ? gameState.players[gameState.currentPlayerIndex] : null; };
 const handleBuyProperty = () => { const curr = getCurrentPlayerState(); if (!curr || !gameState || gameState.activeAction?.type !== "BUY") return; const cell = board[gameState.players[gameState.currentPlayerIndex].position]; if (!cell.price || curr.money < cell.price) return; socket?.emit("buy_property", { position: cell.position }); setShowActionPanel(false); addLog("Bought.", false); };
@@ -269,32 +280,158 @@ Room: {roomId.substring(0, 8)}...
 {!isInRoom && (
 <div style={styles.lobbyWrapper}>
 <div style={styles.createCard}>
-<h3 style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '26px', color: '#eee' }}>Create</h3>
+<h3 style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '26px', color: '#eee' }}>Создать игру</h3>
 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-<select value={createMode} onChange={e => setCreateMode(e.target.value as any)} style={{ ...styles.select, color: '#222' }}>
-<option value="MEGA">Mega (8)</option>
-<option value="CLASSIC">Classic (4)</option>
+<select value={createMode} onChange={e => setCreateMode(e.target.value as any)} style={{ ...styles.select, color: '#eee' }}>
+<option value="MEGA">Мега (8 игроков)</option>
+<option value="CLASSIC">Классика (4 игрока)</option>
 </select>
-<button onClick={handleCreateRoom} style={styles.btnPrimary}>Create</button>
+<button onClick={handleCreateRoom} style={styles.btnPrimary}>Создать</button>
 </div>
 </div>
 <div style={styles.lobbyList}>
-<h3 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#eee' }}>Rooms</h3>
+<h3 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#eee' }}>Доступные комнаты</h3>
 {availableRooms.filter(r => r.id !== roomId).length === 0 ? (
-<p style={{ color: '#888', textAlign: 'center', padding: '60px 0', fontSize: '17px' }}>None.<br />Create one!</p>
+<p style={{ color: '#888', textAlign: 'center', padding: '60px 0', fontSize: '17px' }}>Нет открытых комнат.<br />Создайте первую!</p>
 ) : (
 <div style={styles.roomList}>
 {availableRooms.filter(r => r.id !== roomId).map(r => (
 <div key={r.id} style={styles.roomItem}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-<span style={{ ...styles.badge, backgroundColor: r.mode === 'MEGA' ? '#ff9500' : '#0071e3' }}>{r.mode}</span>
-<span style={{ fontSize: '16px', fontWeight: 600, color: '#eee' }}>{r.playerCount}/{r.maxPlayers}</span>
+<div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+<span style={{ ...styles.badge, backgroundColor: r.mode === 'MEGA' ? '#ff9500' : '#0071e3' }}>
+{r.mode === 'MEGA' ? 'Мега' : 'Классика'}
+</span>
+<div style={{ display: 'flex', gap: -4 }}>
+{r.playersPreview.slice(0, 5).map((p: any, i: number) => (
+<img
+key={i}
+src={p.avatarUrl}
+title={p.displayName}
+style={{
+width: 28,
+height: 28,
+borderRadius: '50%',
+border: '2px solid #1e1e1e',
+marginLeft: i > 0 ? -8 : 0,
+objectFit: 'cover',
+}}
+/>
+))}
+{r.playersPreview.length > 5 && (
+<div style={{
+width: 28,
+height: 28,
+borderRadius: '50%',
+background: '#333',
+border: '2px solid #1e1e1e',
+marginLeft: -8,
+display: 'flex',
+alignItems: 'center',
+justifyContent: 'center',
+fontSize: 11,
+color: '#aaa',
+}}>
++{r.playersPreview.length - 5}
 </div>
-<button onClick={() => handleJoinRoom(r.id)} disabled={r.status === 'PLAYING'} style={styles.btnSecondary}>
-{r.status === 'PLAYING' ? 'In' : 'Join'}
+)}
+</div>
+<span style={{ fontSize: '14px', color: '#888' }}>
+{r.playerCount}/{r.maxPlayers}
+</span>
+</div>
+<button
+onClick={() => handleJoinRoom(r.id)}
+disabled={r.status === 'PLAYING'}
+style={styles.btnSecondary}
+>
+{r.status === 'PLAYING' ? 'В игре' : 'Войти'}
 </button>
 </div>
 ))}
+</div>
+)}
+</div>
+</div>
+)}
+{isInRoom && !isGameStarted && (
+<div style={{
+maxWidth: 820,
+margin: '0 auto',
+padding: '32px 20px',
+width: '100%',
+boxSizing: 'border-box',
+}}>
+<div style={styles.lobbyList}>
+<h3 style={{ margin: '0 0 20px 0', fontSize: '20px', color: '#eee' }}>
+Игроки в комнате ({players.length}/{players.length > 4 ? 8 : 4})
+</h3>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+{players.map((p, i) => {
+const isMe = p.userId === myProfile?.id;
+const piece = roomPieces[p.userId] || 'hat';
+const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+return (
+<div key={p.userId} style={{
+display: 'flex',
+alignItems: 'center',
+gap: 14,
+padding: '12px 16px',
+backgroundColor: '#252525',
+borderRadius: 12,
+border: isMe ? `1px solid ${color}44` : '1px solid transparent',
+}}>
+<img src={p.avatarUrl} style={{
+width: 40, height: 40, borderRadius: '50%', objectFit: 'cover',
+border: `2px solid ${color}`,
+}} alt="" />
+<PieceToken pieceId={piece} color={color} size={20} />
+<div style={{ flex: 1 }}>
+<div style={{ fontWeight: 600, color: '#eee', fontSize: 15 }}>
+{p.displayName}
+{isMe && <span style={{ fontSize: 12, color: color, marginLeft: 8 }}>Вы</span>}
+</div>
+{!p.isOnline && (
+<div style={{ fontSize: 12, color: '#666' }}>Офлайн</div>
+)}
+</div>
+<div style={{
+width: 8, height: 8, borderRadius: '50%',
+background: p.isOnline ? '#28a745' : '#555',
+}} />
+</div>
+);
+})}
+{Array.from({ length: Math.max(0, (players.length <= 4 ? 4 : 8) - players.length) }).map((_, i) => (
+<div key={`empty-${i}`} style={{
+display: 'flex',
+alignItems: 'center',
+gap: 14,
+padding: '12px 16px',
+backgroundColor: '#1a1a1a',
+borderRadius: 12,
+border: '1px dashed #333',
+opacity: 0.4,
+}}>
+<div style={{ width: 40, height: 40, borderRadius: '50%', background: '#333' }} />
+<div style={{ color: '#555', fontSize: 14 }}>Ожидание игрока...</div>
+</div>
+))}
+</div>
+{myProfile && (
+<div style={{
+padding: '16px',
+backgroundColor: '#1e1e1e',
+borderRadius: 12,
+border: '1px solid #333',
+}}>
+<PieceSelector
+selectedPiece={selectedPiece}
+playerIndex={players.findIndex(p => p.userId === myProfile.id)}
+onChange={handleSelectPiece}
+takenPieces={Object.entries(roomPieces)
+.filter(([uid]) => uid !== myProfile.id)
+.map(([, piece]) => piece)}
+/>
 </div>
 )}
 </div>
@@ -603,6 +740,13 @@ style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid 
 )}
 {viewProfileModalOpen && viewingProfile && (
 <div style={styles.modalOverlay} onClick={() => setViewProfileModalOpen(false)}><div style={styles.modal} onClick={e => e.stopPropagation()}><h2 style={{ marginTop: 0, marginBottom: 16, color:'#eee' }}>{viewingProfile.displayName}</h2><div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}><img src={viewingProfile.avatarUrl} alt="" style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #0071e3', objectFit: 'cover' }} /></div><div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: '#2a2a2a', borderRadius: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Games:</span><strong>{viewingProfile.gamesPlayed}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Wins:</span><strong>{viewingProfile.wins}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Rate:</span><strong>{viewingProfile.gamesPlayed > 0 ? Math.round((viewingProfile.wins / viewingProfile.gamesPlayed) * 100) : 0}%</strong></div></div><button onClick={() => setViewProfileModalOpen(false)} style={{ ...styles.btnSecondary, width: '100%' }}>Close</button></div></div>
+)}
+{winData && (
+<WinScreen
+winnerId={winData.winnerId}
+players={players}
+onLeave={handleWinLeave}
+/>
 )}
 </div>
 );

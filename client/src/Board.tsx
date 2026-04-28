@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { PieceToken, type PieceId } from "./components/PieceSelector";
 
 const CORNER = 100;
 const CELL = 55;
@@ -32,6 +33,7 @@ highlightRequested?: number[];
 validMoveTargets?: number[] | null;
 currentPlayerPosition?: number;
 isContractOpen?: boolean;
+roomPieces?: Record<string, PieceId>;
 };
 
 function getCellStyle(index: number): React.CSSProperties {
@@ -112,7 +114,7 @@ if (houses === 5) return { building: '🏨', mortgage: '' };
 return { building: '🏙️', mortgage: '' };
 }
 
-export default function Board({ board, players, gameState, onCellClick, onCellRightClick, highlightOffered = [], highlightRequested = [], validMoveTargets, currentPlayerPosition, isContractOpen = false }: Props) {
+export default function Board({ board, players, gameState, onCellClick, onCellRightClick, highlightOffered = [], highlightRequested = [], validMoveTargets, currentPlayerPosition, isContractOpen = false, roomPieces = {} }: Props) {
 const [animatedPlayers, setAnimatedPlayers] = useState<Record<string, number>>({});
 
 useEffect(() => {
@@ -193,7 +195,8 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 <div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 1 }}>
 {occupants.map((p: any) => {
 const idx = players.findIndex((pl: any) => pl.userId === p.userId);
-return <div key={p.userId} title={players[idx]?.displayName || p.userId} style={{ width: 12, height: 12, borderRadius: "50%", background: PLAYER_COLORS[idx % PLAYER_COLORS.length], border: "1px solid white", boxShadow: "0 1px 2px rgba(0,0,0,0.3)" }} />;
+const pieceId = roomPieces[p.userId] || 'hat';
+return <PieceToken key={p.userId} pieceId={pieceId} color={PLAYER_COLORS[idx % PLAYER_COLORS.length]} size={14} />;
 })}
 </div>
 </div>
