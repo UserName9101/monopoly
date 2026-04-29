@@ -37,14 +37,18 @@ roomPieces?: Record<string, PieceId>;
 };
 
 function getCellStyle(index: number): React.CSSProperties {
-if (index === 0) return { position: "absolute", top: EDGE, left: EDGE, width: CORNER, height: CORNER };
-if (index === 13) return { position: "absolute", top: EDGE, left: 0, width: CORNER, height: CORNER };
-if (index === 26) return { position: "absolute", top: 0, left: 0, width: CORNER, height: CORNER };
-if (index === 39) return { position: "absolute", top: 0, left: EDGE, width: CORNER, height: CORNER };
-if (index >= 1 && index <= 12) return { position: "absolute", top: EDGE, left: OFFSET + (12 - index) * STEP, width: CELL, height: CORNER };
-if (index >= 14 && index <= 25) return { position: "absolute", top: OFFSET + (25 - index) * STEP, left: 0, width: CORNER, height: CELL };
-if (index >= 27 && index <= 38) return { position: "absolute", top: 0, left: OFFSET + (index - 27) * STEP, width: CELL, height: CORNER };
-return { position: "absolute", top: OFFSET + (index - 40) * STEP, left: EDGE, width: CORNER, height: CELL };
+if (index === 0) return { position: "absolute", top: 0, left: 0, width: CORNER, height: CORNER };
+if (index === 13) return { position: "absolute", top: 0, left: EDGE, width: CORNER, height: CORNER };
+if (index === 26) return { position: "absolute", top: EDGE, left: EDGE, width: CORNER, height: CORNER };
+if (index === 39) return { position: "absolute", top: EDGE, left: 0, width: CORNER, height: CORNER };
+// сторона 0→13: верхняя, слева направо
+if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: OFFSET + (index - 1) * STEP, width: CELL, height: CORNER };
+// сторона 13→26: правая, сверху вниз
+if (index >= 14 && index <= 25) return { position: "absolute", top: OFFSET + (index - 14) * STEP, left: EDGE, width: CORNER, height: CELL };
+// сторона 26→39: нижняя, справа налево
+if (index >= 27 && index <= 38) return { position: "absolute", top: EDGE, left: OFFSET + (38 - index) * STEP, width: CELL, height: CORNER };
+// сторона 39→0: левая, снизу вверх
+return { position: "absolute", top: OFFSET + (51 - index) * STEP, left: 0, width: CORNER, height: CELL };
 }
 
 function getStripStyle(index: number, color: string): React.CSSProperties {
@@ -160,7 +164,7 @@ const isSpecialMoveMode = !!validMoveTargets;
 const isValidTarget = !isSpecialMoveMode || validMoveTargets!.includes(cell.position);
 const hasImprovements = (cell.houses || 0) > 0 || cell.hasDepot;
 const isContractDarkened = isContractOpen && hasImprovements;
-const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `0 2px ${STRIP_SIZE + 2}px` : i >= 14 && i <= 25 ? `${STRIP_SIZE + 2}px 2px 2px ${STRIP_SIZE + 2}px` : i >= 27 && i <= 38 ? `${STRIP_SIZE + 2}px 2px 2px` : `2px ${STRIP_SIZE + 2}px 2px 2px`) : "2px";
+const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `0 2px ${STRIP_SIZE + 2}px` : i >= 14 && i <= 25 ? `2px 2px 2px ${STRIP_SIZE + 2}px` : i >= 27 && i <= 38 ? `${STRIP_SIZE + 2}px 2px 2px` : `2px ${STRIP_SIZE + 2}px 2px 2px`) : "2px";
 const displayValue = calculateRentDisplay(cell, board, cell.ownerId || '');
 const indicators = getCellIndicators(cell.houses, cell.hasDepot, cell.isMortgaged, cell.mortgageTurnsRemaining);
 return (
