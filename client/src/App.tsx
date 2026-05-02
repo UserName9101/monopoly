@@ -124,12 +124,12 @@ const onYourId = (id: string) => setSocketId(id);
 const onRoomCreated = (room: RoomPayload) => { setRoomId(room.id); setPlayers(room.players); setHostId(room.hostId); setRoomStatus(room.status); setBoard(room.board); if (room.gameState) setGameState(room.gameState); setMessages([]); addLog(`Room: ${room.settings.mode}`); localStorage.setItem("lastRoomId", room.id); fetchRooms(); };
 const onRoomJoined = (room: RoomPayload) => { setRoomId(room.id); setPlayers(room.players); setHostId(room.hostId); setRoomStatus(room.status); setBoard(room.board); if (room.gameState) setGameState(room.gameState); setMessages([]); addLog("Joined."); localStorage.setItem("lastRoomId", room.id); fetchRooms(); };
 const onRoomUpdated = (room: RoomPayload) => { setPlayers(room.players); setHostId(room.hostId); setRoomStatus(room.status); if (room.board) setBoard(room.board); if (room.gameState) setGameState(room.gameState); };
-const onStateUpdate = (state: GameState) => { 
-setGameState(state); 
+const onStateUpdate = (state: GameState) => {
+setGameState(state);
 setTimeout(() => {
-const isMyCurrentTurn = myProfile && state.players[state.currentPlayerIndex]?.userId === myProfile.id; 
-if (isMyCurrentTurn && (state.activeAction || !!state.forcedBalanceGroupId)) { setShowActionPanel(true); } else { setShowActionPanel(false); } 
-if (gameState && state.currentPlayerIndex !== gameState.currentPlayerIndex) { const n = players.find(p => p.userId === state.players[state.currentPlayerIndex]?.userId); if (n) addLog(`${n.displayName} turn. ${state.currentPhase}`); } 
+const isMyCurrentTurn = myProfile && state.players[state.currentPlayerIndex]?.userId === myProfile.id;
+if (isMyCurrentTurn && (state.activeAction || !!state.forcedBalanceGroupId)) { setShowActionPanel(true); } else { setShowActionPanel(false); }
+if (gameState && state.currentPlayerIndex !== gameState.currentPlayerIndex) { const n = players.find(p => p.userId === state.players[state.currentPlayerIndex]?.userId); if (n) addLog(`${n.displayName} turn. ${state.currentPhase}`); }
 }, 50);
 };
 const onGameStarted = (state: GameState) => { setGameState(state); setRoomStatus("PLAYING"); addLog("Started!"); };
@@ -404,10 +404,10 @@ style={styles.btnSecondary}
             </div>
           );
         })}
-        
+
         {/* Пустые слоты — ТЕПЕРЬ ПРАВИЛЬНО СЧИТАЕМ ДО 8 В РЕЖИМЕ MEGA */}
-        {Array.from({ 
-          length: Math.max(0, (createMode === "MEGA" ? 8 : 4) - players.length) 
+        {Array.from({
+          length: Math.max(0, (createMode === "MEGA" ? 8 : 4) - players.length)
         }).map((_, i) => (
           <div key={`empty-${i}`} style={{
             display: "flex",
@@ -461,7 +461,7 @@ return <PlayerCard key={p ? p.userId : `el${i}`} player={p} index={i} gameState=
 </div>
 <div style={styles.centerPanel}>
 <div style={styles.boardWrapper}>
-<Board board={board} players={players} gameState={gameState} onCellClick={(validMoveTargets || activeContract || isMyTurn) ? handleBoardCellClick : undefined} onCellRightClick={handleOpenBuildPanel} highlightOffered={selectedProperties.offered} highlightRequested={selectedProperties.requested} validMoveTargets={validMoveTargets} currentPlayerPosition={gameState?.players[gameState.currentPlayerIndex]?.position} isContractOpen={!!activeContract} />
+<Board board={board} players={players} gameState={gameState} roomPieces={roomPieces} onCellClick={(validMoveTargets || activeContract || isMyTurn) ? handleBoardCellClick : undefined} onCellRightClick={handleOpenBuildPanel} highlightOffered={selectedProperties.offered} highlightRequested={selectedProperties.requested} validMoveTargets={validMoveTargets} currentPlayerPosition={gameState?.players[gameState.currentPlayerIndex]?.position} isContractOpen={!!activeContract} />
 </div>
 <div style={styles.centerChatOverlay}>
 {activeContract && myProfile && (
