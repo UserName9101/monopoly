@@ -211,32 +211,29 @@ return <PieceToken key={p.userId} pieceId={pieceId} color={PLAYER_COLORS[idx % P
 const visualPos = getPlayerVisualPosition(player);
 const center = getCellCenter(visualPos);
 const color = PLAYER_COLORS[idx % PLAYER_COLORS.length];
+const pieceId = (roomPieces[player.userId] as PieceId) || "hat";
+const TOKEN_SIZE = 32;
+const displayName = players.find(p => p.userId === player.userId)?.displayName;
 return (
 <div
 key={`token-${player.userId}`}
 style={{
 position: "absolute",
-left: center.x - 10,
-top: center.y - 10,
-width: 20,
-height: 20,
-borderRadius: "50%",
-backgroundColor: color,
-border: "2px solid white",
-boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-fontSize: "10px",
-fontWeight: "bold",
-color: "#111",
+left: center.x - TOKEN_SIZE / 2,
+top: center.y - TOKEN_SIZE / 2,
+width: TOKEN_SIZE,
+height: TOKEN_SIZE,
 zIndex: 100,
 transition: "left 0.6s cubic-bezier(0.25, 0.1, 0.25, 1), top 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
 pointerEvents: "none",
 }}
-title={players.find(p => p.userId === player.userId)?.displayName}
 >
-{idx + 1}
+<PieceToken
+pieceId={pieceId}
+color={color}
+size={TOKEN_SIZE}
+label={displayName}
+/>
 </div>
 );
 })}
