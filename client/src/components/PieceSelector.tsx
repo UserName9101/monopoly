@@ -7,9 +7,9 @@ export const PIECES: { id: PieceId; label: string }[] = [
   { id: "car",         label: "Машина"    },
   { id: "dog",         label: "Собака"    },
   { id: "ship",        label: "Корабль"   },
-  { id: "iron",        label: "Утюг"      },
+  { id: "iron",        label: "Кошка"      },
   { id: "boot",        label: "Ботинок"   },
-  { id: "thimble",     label: "Напёрсток" },
+  { id: "thimble",     label: "Чесночница" },
   { id: "wheelbarrow", label: "Тачка"     },
 ];
 
@@ -78,9 +78,28 @@ export function PieceSVG({
     ),
     iron: (
       <>
-        <path d="M4 42 L56 42 L52 22 Q42 10 22 16 L4 42Z" fill={f} stroke={s} strokeWidth={sw} strokeLinejoin="round" />
-        <rect x="26" y="8" width="8" height="12" rx="3" fill={f} stroke={s} strokeWidth={sw} />
-        <path d="M6 36 L54 36" fill="none" stroke={`${f}66`} strokeWidth={1.5} />
+        {/* Тело */}
+        <ellipse cx="30" cy="38" rx="18" ry="14" fill={f} stroke={s} strokeWidth={sw} />
+        {/* Голова */}
+        <circle cx="30" cy="20" r="13" fill={f} stroke={s} strokeWidth={sw} />
+        {/* Левое ухо */}
+        <path d="M18 12 L14 3 L24 10Z" fill={f} stroke={s} strokeWidth={sw} strokeLinejoin="round" />
+        {/* Правое ухо */}
+        <path d="M42 12 L46 3 L36 10Z" fill={f} stroke={s} strokeWidth={sw} strokeLinejoin="round" />
+        {/* Глаза */}
+        <ellipse cx="25" cy="19" rx="3" ry="3.5" fill={s} />
+        <ellipse cx="35" cy="19" rx="3" ry="3.5" fill={s} />
+        <ellipse cx="25" cy="20" rx="1.2" ry="2" fill="#fff" opacity={0.5} />
+        <ellipse cx="35" cy="20" rx="1.2" ry="2" fill="#fff" opacity={0.5} />
+        {/* Нос */}
+        <path d="M28 25 L30 27 L32 25" fill={s} stroke={s} strokeWidth={1} strokeLinejoin="round" />
+        {/* Усы */}
+        <path d="M14 24 L24 25" fill="none" stroke={s} strokeWidth={1.2} strokeLinecap="round" />
+        <path d="M14 27 L24 27" fill="none" stroke={s} strokeWidth={1.2} strokeLinecap="round" />
+        <path d="M46 24 L36 25" fill="none" stroke={s} strokeWidth={1.2} strokeLinecap="round" />
+        <path d="M46 27 L36 27" fill="none" stroke={s} strokeWidth={1.2} strokeLinecap="round" />
+        {/* Хвост */}
+        <path d="M48 42 Q58 34 54 24 Q52 18 56 14" fill="none" stroke={s} strokeWidth={sw + 0.5} strokeLinecap="round" />
       </>
     ),
     boot: (
@@ -152,7 +171,7 @@ export function PieceToken({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+        filter: `drop-shadow(0 2px 4px ${color}99)`,
         flexShrink: 0,
       }}
       title={label}
