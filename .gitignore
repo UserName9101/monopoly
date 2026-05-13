@@ -1,8 +1,16 @@
-```gitignore
+```
 # Dependencies
 node_modules/
 
-# Build outputs
+# Environment
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+
+# Build artifacts
 dist/
 build/
 target/
@@ -16,56 +24,40 @@ __pycache__/
 env/
 venv/
 .venv/
-.ENV
-.env
-.env.local
-.env.*
-.envrc
-.coverage
-htmlcov/
-.coverage.*
-.pytest_cache/
-.mypy_cache/
-.hypothesis/
+.venv.bak/
+pip-log.txt
+pip-selfcheck.json
 
-# Logs
-*.log
+# Node.js
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+node_modules/
+jspm_packages/
+web_modules/
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Thumbs.db:encryptable
-
-# Editor files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# Environment variable files
-.env
-.env.local
-.env.*
+# OS
+.DS_Store
+Thumbs.db
 
-# Compiled files
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
+# Coverage
+coverage/
+htmlcov/
+.coverage
+*.coverage
 
-# Compressed files
+# Temporary
+*.tmp
+*.temp
+*.bak
+
+# Compressed
 *.zip
 *.gz
 *.tar
@@ -84,25 +76,4 @@ Thumbs.db:encryptable
 *.Z
 *.lz
 *.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-
-# Coverage reports
-coverage/
-*.gcov
-*.lcov
-*.info
-
-# Temporary files
-*.tmp
-*.temp
-*~
-```
-
-Wait, I need to reconsider. The only modified file is 'client/src/App.tsx', which is a TypeScript React component file. This appears to be just a source code file without any build artifacts, dependencies, or temporary files in the change list.
-
-```gitignore
-
 ```
