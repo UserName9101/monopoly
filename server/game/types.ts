@@ -97,6 +97,7 @@ pendingBalanceResolveAction?: BalanceResolveAction;
 pendingBusChoice?: boolean;
 pendingBusBaseMove?: number;
 pendingBusExtraMove?: boolean;
+pendingDice?: { white1: number; white2: number; speed: number | "MR" | "BUS" };
 auctionState?: {
 isAuction: boolean;
 cellPosition: number;

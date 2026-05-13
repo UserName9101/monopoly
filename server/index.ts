@@ -575,7 +575,26 @@ if (gs.forcedBalanceGroupId) return socket.emit("roll_blocked", "Сначала 
 const dice = rollThreeDice();
 const whiteSum = dice.white1 + dice.white2;
 const speedStr = typeof dice.speed === "number" ? dice.speed.toString() : dice.speed;
+
+// Сохраняем результат броска во временное состояние, чтобы использовать после подтверждения
+gs.pendingDice = { white1: dice.white1, white2: dice.white2, speed: dice.speed };
+
 io.to(r.id).emit("dice_rolled", { result: `${dice.white1}:${dice.white2}:${speedStr}`, white1: dice.white1, white2: dice.white2, speed: dice.speed });
+// Не двигаем фишку сразу - ждём confirm_move от клиента после завершения анимации
+return;
+});
+
+socket.on("confirm_move", () => {
+const r = Array.from(rooms.values()).find(rm => rm.players.some(p => p.socketId === socket.id));
+if (!r || r.status !== "PLAYING") return;
+const gs = r.gameState;
+const c = gs.players[gs.currentPlayerIndex];
+if (c.userId !== socket.data.userId) return;
+if (!gs.pendingDice) return;
+
+const dice = gs.pendingDice;
+delete gs.pendingDice;
+
 const isDoubles = dice.white1 === dice.white2;
 const isTriple = typeof dice.speed === "number" && isDoubles && dice.white1 === dice.speed;
 
@@ -590,6 +609,7 @@ io.to(r.id).emit("state_update", r.gameState); io.to(r.id).emit("room_updated", 
 return;
 }
 
+const whiteSum = dice.white1 + dice.white2;
 const speedValue = typeof dice.speed === "number" ? dice.speed : 0;
 const moveAmount = whiteSum + speedValue;
 
