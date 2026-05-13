@@ -4,6 +4,7 @@ import Board from "./Board";
 import PieceSelector, { PieceToken, PIECES } from "./components/PieceSelector";
 import type { PieceId } from "./components/PieceSelector";
 import WinScreen from "./components/WinScreen";
+import DiceRollAnimation, { type DiceRollResult } from "./components/DiceRollAnimation";
 import type {
 UserProfile, RoomPlayer, PlayerState, GameState, BoardCell,
 ContractProposal, RoomPayload, RoomSummary, ChatMessage, AuctionState
@@ -53,6 +54,8 @@ const [auctionTimer, setAuctionTimer] = useState<number>(10);
 const [selectedPiece, setSelectedPiece] = useState<PieceId>("hat");
 const [roomPieces, setRoomPieces] = useState<Record<string, PieceId>>({});
 const [winData, setWinData] = useState<{ winnerId: string } | null>(null);
+const [diceRollResult, setDiceRollResult] = useState<DiceRollResult | null>(null);
+const [pendingDiceMove, setPendingDiceMove] = useState<{ white1: number; white2: number; speed: number | "MR" | "BUS"; isTriple: boolean } | null>(null);
 const selectedCell = selectedCellPositionForBuild !== null ? board.find(c => c.position === selectedCellPositionForBuild) : null;
 const isMyProperty = selectedCell?.ownerId === myProfile?.id;
 const isBalancing = !!gameState?.forcedBalanceGroupId;

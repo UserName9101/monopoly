@@ -1,0 +1,326 @@
+// DiceRollAnimation.tsx
+// Анимация броска трёх кубиков: два белых d6 + красный speed die
+// Используется поверх игрового поля в виде оверлея.
+
+import React, { useEffect, useRef, useState } from "react";
+import { WHITE_DICE_FACES, SPEED_DICE_FACES, DieFace } from "./DiceFaces";
+
+// ─── Типы ────────────────────────────────────────────────────────────────────
+
+type SpeedValue = number | "MR" | "BUS";
+
+export type DiceRollResult = {
+  white1: number;   // 1–6
+  white2: number;   // 1–6
+  speed: SpeedValue; // 1–3 | "MR" | "BUS"
+};
+
+type DiceRollAnimationProps = {
+  /** null = скрыт; объект с результатом = запустить анимацию */
+  result: DiceRollResult | null;
+  /** Вызывается, когда анимация завершена и пауза показа истекла */
+  onAnimationComplete?: () => void;
+};
+
+// ─── Параметры анимации ───────────────────────────────────────────────────────
+
+const ANIM_DURATION_MS = 1800;    // общая длительность «крутёжки»
+const RESULT_HOLD_MS   = 1500;    // пауза после остановки до скрытия
+const INITIAL_INTERVAL = 40;      // самый быстрый интервал смены кадра (мс)
+const FINAL_INTERVAL   = 320;     // самый медленный интервал смены кадра (мс)
+
+const WHITE_VALUES = [1, 2, 3, 4, 5, 6] as const;
+const SPEED_VALUES: SpeedValue[] = [1, 2, 3, "MR", "BUS"];
+
+// Easing: ease-out кривая для замедления
+// t ∈ [0, 1] → interval ∈ [INITIAL, FINAL]
+function getInterval(t: number): number {
+  // cubic ease-out: медленнее к концу
+  const eased = 1 - Math.pow(1 - t, 3);
+  return INITIAL_INTERVAL + (FINAL_INTERVAL - INITIAL_INTERVAL) * eased;
+}
+
+function randomWhite(): number {
+  return WHITE_VALUES[Math.floor(Math.random() * WHITE_VALUES.length)];
+}
+function randomSpeed(): SpeedValue {
+  return SPEED_VALUES[Math.floor(Math.random() * SPEED_VALUES.length)];
+}
+
+// ─── Хук анимации одного кубика ──────────────────────────────────────────────
+
+function useDieAnimation<T>(
+  finalValue: T,
+  randomFn: () => T,
+  running: boolean,
+): T {
+  const [display, setDisplay] = useState<T>(finalValue);
+  const startTimeRef = useRef<number>(0);
+  const rafRef = useRef<number>(0);
+  const nextTickRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!running) {
+      setDisplay(finalValue);
+      return;
+    }
+
+    startTimeRef.current = performance.now();
+    nextTickRef.current = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - startTimeRef.current;
+      const t = Math.min(elapsed / ANIM_DURATION_MS, 1);
+
+      if (t < 1) {
+        if (now >= nextTickRef.current) {
+          setDisplay(randomFn());
+          const interval = getInterval(t);
+          nextTickRef.current = now + interval;
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        // Финальный кадр — настоящий результат
+        setDisplay(finalValue);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [running, finalValue]);
+
+  return display;
+}
+
+// ─── Компонент ───────────────────────────────────────────────────────────────
+
+export default function DiceRollAnimation({
+  result,
+  onAnimationComplete,
+}: DiceRollAnimationProps) {
+  const [visible, setVisible] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const animTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Значения «финала» (пока нет результата — заглушка)
+  const finalW1: number = result?.white1 ?? 1;
+  const finalW2: number = result?.white2 ?? 1;
+  const finalSp: SpeedValue = result?.speed ?? 1;
+
+  const w1 = useDieAnimation<number>(finalW1, randomWhite, animating);
+  const w2 = useDieAnimation<number>(finalW2, randomWhite, animating);
+  const sp = useDieAnimation<SpeedValue>(finalSp, randomSpeed, animating);
+
+  useEffect(() => {
+    if (!result) {
+      setVisible(false);
+      setAnimating(false);
+      return;
+    }
+
+    // Показываем оверлей и запускаем анимацию
+    setVisible(true);
+    setAnimating(true);
+
+    // Останавливаем «крутёжку» после ANIM_DURATION_MS
+    animTimerRef.current = setTimeout(() => {
+      setAnimating(false);
+
+      // Держим результат на экране, потом скрываем и вызываем callback
+      holdTimerRef.current = setTimeout(() => {
+        setVisible(false);
+        onAnimationComplete?.();
+      }, RESULT_HOLD_MS);
+    }, ANIM_DURATION_MS);
+
+    return () => {
+      clearTimeout(animTimerRef.current);
+      clearTimeout(holdTimerRef.current);
+    };
+  }, [result]);
+
+  if (!visible) return null;
+
+  const isDoubles = !animating && result && result.white1 === result.white2;
+  const speedLabel =
+    !animating && result
+      ? typeof result.speed === "number"
+        ? `+${result.speed}`
+        : result.speed === "MR"
+        ? "Mr. Monopoly!"
+        : "Bus Ticket!"
+      : null;
+
+  return (
+    <div style={overlayStyle}>
+      <div style={panelStyle}>
+        {/* Заголовок */}
+        <div style={titleStyle}>
+          {animating ? "Бросок кубиков..." : "Результат"}
+        </div>
+
+        {/* Кубики */}
+        <div style={diceRowStyle}>
+          {/* Белый 1 */}
+          <DiceSlot type="white" value={w1} animating={animating} label="Кубик 1" />
+
+          {/* Белый 2 */}
+          <DiceSlot type="white" value={w2} animating={animating} label="Кубик 2" />
+
+          {/* Разделитель */}
+          <div style={separatorStyle} />
+
+          {/* Speed Die */}
+          <DiceSlot type="speed" value={sp} animating={animating} label="Speed Die" />
+        </div>
+
+        {/* Итог */}
+        {!animating && result && (
+          <div style={resultStyle}>
+            <span style={sumStyle}>
+              {typeof result.speed === "number"
+                ? `Итого: ${result.white1} + ${result.white2} + ${result.speed} = ${result.white1 + result.white2 + result.speed}`
+                : `Итого: ${result.white1} + ${result.white2} = ${result.white1 + result.white2}`}
+            </span>
+            {isDoubles && (
+              <span style={doublesStyle}>🎲 Дубль!</span>
+            )}
+            {speedLabel && typeof result.speed !== "number" && (
+              <span style={speedLabelStyle}>{speedLabel}</span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Слот одного кубика ──────────────────────────────────────────────────────
+
+function DiceSlot({
+  type,
+  value,
+  animating,
+  label,
+}: {
+  type: "white" | "speed";
+  value: number | "MR" | "BUS";
+  animating: boolean;
+  label: string;
+}) {
+  return (
+    <div style={slotStyle}>
+      <div
+        style={{
+          ...dieWrapperStyle,
+          filter: animating
+            ? "drop-shadow(0 0 8px rgba(255,255,255,0.4))"
+            : type === "white"
+            ? "drop-shadow(0 4px 12px rgba(0,0,0,0.5))"
+            : "drop-shadow(0 4px 12px rgba(192,57,43,0.7))",
+          transform: animating
+            ? `rotate(${Math.random() > 0.5 ? 5 : -5}deg) scale(1.05)`
+            : "rotate(0deg) scale(1)",
+          transition: animating ? "none" : "transform 0.3s ease, filter 0.3s ease",
+        }}
+      >
+        <DieFace type={type} value={value} size={88} />
+      </div>
+      <span style={dieLabelStyle}>{label}</span>
+    </div>
+  );
+}
+
+// ─── Стили ───────────────────────────────────────────────────────────────────
+
+const overlayStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  backgroundColor: "rgba(0,0,0,0.75)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 99999,
+  backdropFilter: "blur(4px)",
+};
+
+const panelStyle: React.CSSProperties = {
+  background: "linear-gradient(145deg, #1e1e1e 0%, #2a2a2a 100%)",
+  border: "1px solid #444",
+  borderRadius: 20,
+  padding: "28px 36px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 20,
+  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+  minWidth: 360,
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: 15,
+  color: "#888",
+  fontWeight: 600,
+  letterSpacing: 1,
+  textTransform: "uppercase",
+};
+
+const diceRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 16,
+};
+
+const slotStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 8,
+};
+
+const dieWrapperStyle: React.CSSProperties = {
+  willChange: "transform, filter",
+};
+
+const dieLabelStyle: React.CSSProperties = {
+  fontSize: 10,
+  color: "#666",
+  letterSpacing: 0.5,
+  textTransform: "uppercase",
+};
+
+const separatorStyle: React.CSSProperties = {
+  width: 1,
+  height: 70,
+  background: "linear-gradient(to bottom, transparent, #444, transparent)",
+  margin: "0 4px",
+};
+
+const resultStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 6,
+  paddingTop: 4,
+  borderTop: "1px solid #333",
+  width: "100%",
+};
+
+const sumStyle: React.CSSProperties = {
+  fontSize: 16,
+  fontWeight: 700,
+  color: "#eee",
+};
+
+const doublesStyle: React.CSSProperties = {
+  fontSize: 14,
+  color: "#ffd700",
+  fontWeight: 700,
+};
+
+const speedLabelStyle: React.CSSProperties = {
+  fontSize: 13,
+  color: "#ff6b6b",
+  fontWeight: 600,
+};
