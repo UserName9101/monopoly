@@ -146,6 +146,7 @@ const onContractExpired = ({ contractId }: { contractId: string }) => { if (acti
 const onDiceRolled = ({ result, white1, white2, speed }: { result?: string; white1?: number; white2?: number; speed?: number | "MR" | "BUS" }) => {
   addLog(`🎲 Бросок: ${result || `${white1}:${white2}:${speed}`}`, false);
   if (white1 !== undefined && white2 !== undefined && speed !== undefined) {
+    setPendingDiceMove({ white1, white2, speed, isTriple: white1 === white2 });
     setDiceRollResult({ white1, white2, speed });
   }
 };
@@ -183,6 +184,14 @@ const handleCreateRoom = () => socket?.emit("create_room", { mode: createMode, m
 const handleJoinRoom = (id: string) => socket?.emit("join_room", id);
 const handleStartGame = () => socket?.emit("start_game");
 const handleRollDice = () => { socket?.emit("roll_dice"); addLog("Rolling...", false); };
+const handleAnimationComplete = () => {
+  setDiceRollResult(null);
+  if (pendingDiceMove) {
+    // Анимация завершена, теперь можно двигаться
+    // Фишка будет двигаться через существующую логику state_update
+    setPendingDiceMove(null);
+  }
+};
 const handleUseTicket = () => { socket?.emit("use_bus_ticket"); addLog("Используем Bus Ticket...", false); };
 const handleFinishGame = () => socket?.emit("finish_game");
 const handleLeaveRoom = () => { localStorage.removeItem("lastRoomId"); setRoomId(""); setPlayers([]); setGameState(null); setBoard([]); setMessages([]); setActiveCardIndex(null); setIsContractPendingByMe(false); socket?.emit("leave_room"); };
@@ -767,6 +776,7 @@ players={players}
 onLeave={handleWinLeave}
 />
 )}
+<DiceRollAnimation result={diceRollResult} onAnimationComplete={handleAnimationComplete} />
 </div>
 );
 }

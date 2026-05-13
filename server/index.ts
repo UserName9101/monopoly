@@ -533,7 +533,7 @@ if (c.inJail) {
 const d1 = rollDie();
 const d2 = rollDie();
 const isDoubles = d1 === d2;
-io.to(r.id).emit("dice_rolled", { result: `${d1}:${d2}` });
+io.to(r.id).emit("dice_rolled", { result: `${d1}:${d2}`, white1: d1, white2: d2, speed: 0 });
 if (isDoubles) {
 c.inJail = false; c.jailTurns = 0;
 const dist = d1 + d2;
@@ -575,7 +575,7 @@ if (gs.forcedBalanceGroupId) return socket.emit("roll_blocked", "Сначала 
 const dice = rollThreeDice();
 const whiteSum = dice.white1 + dice.white2;
 const speedStr = typeof dice.speed === "number" ? dice.speed.toString() : dice.speed;
-io.to(r.id).emit("dice_rolled", { result: `${dice.white1}:${dice.white2}:${speedStr}` });
+io.to(r.id).emit("dice_rolled", { result: `${dice.white1}:${dice.white2}:${speedStr}`, white1: dice.white1, white2: dice.white2, speed: dice.speed });
 const isDoubles = dice.white1 === dice.white2;
 const isTriple = typeof dice.speed === "number" && isDoubles && dice.white1 === dice.speed;
 
