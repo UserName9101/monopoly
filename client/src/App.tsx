@@ -143,7 +143,12 @@ const onContractError = (msg: string) => { addLog(msg, false); setActiveContract
 const onContractProposed = (p: ContractProposal) => { if (!myProfile || p.proposerId === myProfile.id) return; if (p.targetId === myProfile.id) { setActiveContract(p); setSelectedProperties({ offered: p.offeredProperties, requested: p.requestedProperties }); setContractOfferedMoney(p.offeredMoney); setContractRequestedMoney(p.requestedMoney); setContractTimer(CONTRACT_RESPONSE_MS / 1000); const i = setInterval(() => setContractTimer(t => t === null || t <= 1 ? (clearInterval(i), null) : t - 1), 1000); return () => clearInterval(i); } };
 const onContractResolved = ({ contractId, accepted }: { contractId: string; accepted: boolean }) => { if (activeContract?.contractId === contractId) { addLog(`Contract ${accepted ? "accepted" : "declined"}`); setActiveContract(null); setContractTimer(null); setSelectedProperties({ offered: [], requested: [] }); } setIsContractPendingByMe(false); };
 const onContractExpired = ({ contractId }: { contractId: string }) => { if (activeContract?.contractId === contractId) { addLog("Contract expired"); setActiveContract(null); setContractTimer(null); setSelectedProperties({ offered: [], requested: [] }); } setIsContractPendingByMe(false); };
-const onDiceRolled = ({ result }: { result: string }) => { addLog(`🎲 Бросок: ${result}`, false); };
+const onDiceRolled = ({ result, white1, white2, speed }: { result?: string; white1?: number; white2?: number; speed?: number | "MR" | "BUS" }) => {
+  addLog(`🎲 Бросок: ${result || `${white1}:${white2}:${speed}`}`, false);
+  if (white1 !== undefined && white2 !== undefined && speed !== undefined) {
+    setDiceRollResult({ white1, white2, speed });
+  }
+};
 const onBuildError = (msg: string) => { addLog(`Build: ${msg}`, false); };
 const onSellError = (msg: string) => { addLog(`Sell: ${msg}`, false); };
 const onGameLog = ({ text, isSystem }: { text: string; isSystem: boolean }) => addLog(text, isSystem);
