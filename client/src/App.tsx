@@ -73,15 +73,7 @@ return `⚠️ Выровняйте количество домов в набо�
 }, [balanceGroupId, board, myProfile]);
 
 useEffect(() => { document.documentElement.style.margin = "0"; document.documentElement.style.padding = "0"; document.documentElement.style.overflow = "hidden"; document.body.style.margin = "0"; document.body.style.padding = "0"; document.body.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; document.body.style.overflow = ""; }; }, []);
-
-// Глобальные стили для анимаций
-useEffect(() => {
-  const style = document.createElement('style');
-  style.textContent = GLOBAL_STYLES;
-  document.head.appendChild(style);
-  return () => document.head.removeChild(style);
-}, []);
-
+useEffect(() => { const style = document.createElement('style'); style.textContent = GLOBAL_STYLES; document.head.appendChild(style); return () => document.head.removeChild(style); }, []);
 useEffect(() => { const calculateScale = () => { if (!gameCanvasRef.current) return; setScale(Math.min(gameCanvasRef.current.clientWidth / IDEAL_FULL_WIDTH, gameCanvasRef.current.clientHeight / IDEAL_FULL_HEIGHT, 1.1)); }; window.addEventListener("resize", calculateScale); const t = setTimeout(calculateScale, 50); return () => { window.removeEventListener("resize", calculateScale); clearTimeout(t); }; }, []);
 useEffect(() => { if (!token) { setSocket(null); return; } const s = io(API, { auth: { token } }); setSocket(s); s.on("connect_error", (e) => { if (e.message === "Invalid token") handleLogout(); }); return () => s.disconnect(); }, [token]);
 useEffect(() => { if (token) { fetchMyProfile(); fetchRooms(); } }, [token]);
@@ -101,9 +93,9 @@ const addLog = (text: string, isSystem = true) => setMessages(p => [...p, { id: 
 const isHost = socketId && hostId && socketId === hostId;
 const isGameStarted = roomStatus === "PLAYING";
 const isInRoom = roomId !== "";
+const isMyTurn = gameState && myProfile ? gameState.players[gameState.currentPlayerIndex]?.userId === myProfile.id : false;
 const currentPlayerIdx = gameState ? gameState.currentPlayerIndex : 0;
 const currentPlayerColor = PLAYER_COLORS[currentPlayerIdx % PLAYER_COLORS.length];
-const isMyTurn = gameState && myProfile ? gameState.players[gameState.currentPlayerIndex]?.userId === myProfile.id : false;
 const isTripleChoice = gameState?.activeAction?.type === "TRIPLE_CHOICE";
 const isChooseAuction = gameState?.activeAction?.type === "CHOOSE_AUCTION";
 const isChooseBirthday = gameState?.activeAction?.type === "CHOOSE_BIRTHDAY";
@@ -774,8 +766,8 @@ zIndex: 99999, borderRadius: 0, pointerEvents: 'auto'
 {auctionState.currentBidderId === myProfile?.id ? (
 <div style={styles.auctionActions}>
 <button onClick={() => socket?.emit("auction_bid")} disabled={!canBid}
-style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
-<button onClick={() => socket?.emit("auction_drop")} style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
+className="btn-hover btn-buy" style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
+<button onClick={() => socket?.emit("auction_drop")} className="btn-hover" style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
 </div>
 ) : (
 <div style={{textAlign:'center', color:'#888', fontSize:13, padding:12}}>Ожидание хода...</div>
