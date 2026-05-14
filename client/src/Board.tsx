@@ -260,7 +260,7 @@ export default function Board({ board, players, gameState, onCellClick, onCellRi
         // Фон: белый + градиент владельца если есть
         const bgColor = isOffered ? '#FFF8DC' : isRequested ? '#E6F3FF' : '#f8f8f8';
         const bgGradient = ownerColor && !isOffered && !isRequested
-          ? `linear-gradient(to top, ${ownerColor}28 0%, transparent 60%)`
+          ? `linear-gradient(to top, ${ownerColor}40 0%, transparent 70%)`
           : 'none';
 
         return (
@@ -270,10 +270,10 @@ export default function Board({ board, players, gameState, onCellClick, onCellRi
             onContextMenu={(e) => { e.preventDefault(); onCellRightClick?.(cell); }}
             style={{
               ...getCellStyle(i),
-              background: bgColor,
+              background: cell.isMortgaged ? bgColor : (bgGradient !== 'none' ? bgGradient : bgColor),
               backgroundImage: cell.isMortgaged
                 ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.12) 8px, rgba(220,53,69,0.12) 16px)'
-                : bgGradient,
+                : undefined,
               border: isOffered ? '2px solid #C8A800' : isRequested ? '2px solid #3A7BDB' : '1px solid #d0d0d0',
               boxSizing: "border-box",
               display: "flex",
