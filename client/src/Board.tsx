@@ -386,4 +386,4 @@ function PlayerToken({ pieceId, color, x, y }: { pieceId: string; color: string;
     </div>
   );
 }
-}
+
