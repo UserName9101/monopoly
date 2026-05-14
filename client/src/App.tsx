@@ -187,8 +187,8 @@ const handleRollDice = () => { socket?.emit("roll_dice"); addLog("Rolling...", f
 const handleAnimationComplete = () => {
   setDiceRollResult(null);
   if (pendingDiceMove) {
-    // Анимация завершена, теперь можно двигаться
-    // Фишка будет двигаться через существующую логику state_update
+    // Анимация завершена, отправляем подтверждение на сервер для перемещения фишки
+    socket?.emit("confirm_move");
     setPendingDiceMove(null);
   }
 };
