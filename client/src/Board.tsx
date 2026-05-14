@@ -8,10 +8,40 @@ const BOARD_SIZE = 2 * CORNER + 12 * CELL + 13 * GAP;
 const OFFSET = CORNER + GAP;
 const EDGE = BOARD_SIZE - CORNER;
 const STEP = CELL + GAP;
-const STRIP_SIZE = 6;
+const STRIP_SIZE = 20;
 
 const PLAYER_COLORS = ['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#FF33A8', '#33FFF5', '#F5FF33', '#FF8C33'];
 const CORNER_INDICES = [0, 13, 26, 39];
+
+// Звёзды для построек
+const STAR_PATH = "M12 2 L14.09 8.26 L20.72 8.27 L15.27 12.14 L17.36 18.39 L12 14.5 L6.64 18.39 L8.73 12.14 L3.28 8.27 L9.91 8.26 Z";
+
+function StarIcon({ size, color, glow }: { size: number; color: string; glow?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{ filter: glow ? `drop-shadow(0 0 3px ${glow})` : undefined, flexShrink: 0 }}>
+      <path d={STAR_PATH} fill={color} />
+    </svg>
+  );
+}
+
+function BuildingIndicator({ houses, hasDepot, cellIndex }: { houses?: number; hasDepot?: boolean; cellIndex: number }) {
+  const h = houses || 0;
+  if (hasDepot) {
+    // Депо = как отель, золотая звезда
+    return <StarIcon size={11} color="#FFD700" glow="#FFD700" />;
+  }
+  if (h === 0) return null;
+  if (h >= 6) return <StarIcon size={17} color="#9B30FF" glow="#9B30FF" />;
+  if (h === 5) return <StarIcon size={11} color="#FFD700" glow="#FFD700" />;
+  // 1-4 дома — серые маленькие звёзды
+  return (
+    <div style={{ display: "flex", gap: 1, alignItems: "center" }}>
+      {Array.from({ length: h }).map((_, i) => (
+        <StarIcon key={i} size={6} color="#888" />
+      ))}
+    </div>
+  );
+}
 
 type BoardCellProps = {
 position: number; name: string; type: string; price?: number; group?: string; ownerId?: string; action?: string;
@@ -36,77 +66,101 @@ isContractOpen?: boolean;
 roomPieces?: Record<string, PieceId>;
 };
 
-function getCellStyle(index: number): React.CSSProperties {
-if (index === 0) return { position: "absolute", top: 0, left: 0, width: CORNER, height: CORNER };
-if (index === 13) return { position: "absolute", top: 0, left: EDGE, width: CORNER, height: CORNER };
-if (index === 26) return { position: "absolute", top: EDGE, left: EDGE, width: CORNER, height: CORNER };
-if (index === 39) return { position: "absolute", top: EDGE, left: 0, width: CORNER, height: CORNER };
-// сторона 0→13: верхняя, слева направо
-if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: OFFSET + (index - 1) * STEP, width: CELL, height: CORNER };
-// сторона 13→26: правая, сверху вниз
-if (index >= 14 && index <= 25) return { position: "absolute", top: OFFSET + (index - 14) * STEP, left: EDGE, width: CORNER, height: CELL };
-// сторона 26→39: нижняя, справа налево
-if (index >= 27 && index <= 38) return { position: "absolute", top: EDGE, left: OFFSET + (38 - index) * STEP, width: CELL, height: CORNER };
-// сторона 39→0: левая, снизу вверх
-return { position: "absolute", top: OFFSET + (51 - index) * STEP, left: 0, width: CORNER, height: CELL };
-}
-
+// Полоска — теперь занимает STRIP_SIZE=20px, содержит текст цены/ренты
 function getStripStyle(index: number, color: string): React.CSSProperties {
-if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: 0, right: 0, height: STRIP_SIZE, background: color };
-if (index >= 14 && index <= 25) return { position: "absolute", right: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color };
-if (index >= 27 && index <= 38) return { position: "absolute", bottom: 0, left: 0, right: 0, height: STRIP_SIZE, background: color };
-return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color };
+  const base: React.CSSProperties = { position: "absolute", background: color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" };
+  if (index >= 1 && index <= 12) return { ...base, bottom: 0, left: 0, right: 0, height: STRIP_SIZE };
+  if (index >= 14 && index <= 25) return { ...base, left: 0, top: 0, bottom: 0, width: STRIP_SIZE };
+  if (index >= 27 && index <= 38) return { ...base, top: 0, left: 0, right: 0, height: STRIP_SIZE };
+  return { ...base, right: 0, top: 0, bottom: 0, width: STRIP_SIZE };
 }
 
-const getGroupColor = (group?: string) => {
-switch(group) {
-case 'a': return '#8B4513'; case 'b': return '#87CEEB'; case 'c': return '#FF69B4'; case 'd': return '#FFA500';
-case 'e': return '#FF0000'; case 'f': return '#FFD700'; case 'g': return '#008000'; case 'h': return '#00008B';
-case 'station': return '#333'; case 'utility': return '#666'; default: return '#CCC';
+// Грань, смотрящая внутрь поля — туда кладём постройки
+function getInnerEdgeStyle(index: number): React.CSSProperties {
+  const base: React.CSSProperties = { position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", gap: 1, zIndex: 3 };
+  if (index >= 1 && index <= 12) return { ...base, top: 0, left: 0, right: 0, height: 14 };
+  if (index >= 14 && index <= 25) return { ...base, right: 0, top: 0, bottom: 0, width: 14, flexDirection: "column" };
+  if (index >= 27 && index <= 38) return { ...base, bottom: 0, left: 0, right: 0, height: 14 };
+  return { ...base, left: 0, top: 0, bottom: 0, width: 14, flexDirection: "column" };
 }
+
+// Текст полоски: горизонтальный для верх/низ, повёрнутый для левой/правой стороны
+function getStripTextStyle(index: number): React.CSSProperties {
+  const base: React.CSSProperties = { color: "#fff", fontWeight: 700, fontSize: 7, lineHeight: 1, whiteSpace: "nowrap", letterSpacing: 0.3 };
+  if (index >= 14 && index <= 25) return { ...base, writingMode: "vertical-rl", transform: "rotate(180deg)" };
+  if (index >= 40 && index <= 51) return { ...base, writingMode: "vertical-rl" };
+  return base;
+}
+
+function getCellStyle(index: number): React.CSSProperties {
+  if (index === 0) return { position: "absolute", top: EDGE, left: EDGE, width: CORNER, height: CORNER };
+  if (index === 13) return { position: "absolute", top: EDGE, left: 0, width: CORNER, height: CORNER };
+  if (index === 26) return { position: "absolute", top: 0, left: 0, width: CORNER, height: CORNER };
+  if (index === 39) return { position: "absolute", top: 0, left: EDGE, width: CORNER, height: CORNER };
+  if (index >= 1 && index <= 12) return { position: "absolute", top: EDGE, left: OFFSET + (12 - index) * STEP, width: CELL, height: CORNER };
+  if (index >= 14 && index <= 25) return { position: "absolute", top: OFFSET + (25 - index) * STEP, left: 0, width: CORNER, height: CELL };
+  if (index >= 27 && index <= 38) return { position: "absolute", top: 0, left: OFFSET + (index - 27) * STEP, width: CELL, height: CORNER };
+  return { position: "absolute", top: OFFSET + (index - 40) * STEP, left: EDGE, width: CORNER, height: CELL };
+}
+
+function getGroupColor(group?: string): string {
+  switch (group) {
+    case 'a': return '#8B4513';
+    case 'b': return '#5BACD8';
+    case 'c': return '#E8548A';
+    case 'd': return '#E8880A';
+    case 'e': return '#D63030';
+    case 'f': return '#C8A800';
+    case 'g': return '#2A7A2A';
+    case 'h': return '#1A1A8C';
+    case 'station': return '#2a2a2a';
+    case 'utility': return '#4a5568';
+    default: return '#888';
+  }
 };
 
 function getMonopolyStatus(board: BoardCellProps[], ownerId: string, group: string): 'none' | 'partial' | 'full' {
-const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
-if (allInGroup.length === 0) return 'none';
-const ownedInGroup = allInGroup.filter(c => c.ownerId === ownerId && !c.isMortgaged).length;
-const minForPartial = (group === 'a' || group === 'h') ? 2 : 3;
-if (ownedInGroup === allInGroup.length) return 'full';
-if (ownedInGroup >= minForPartial) return 'partial';
-return 'none';
+  const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
+  if (allInGroup.length === 0) return 'none';
+  const ownedInGroup = allInGroup.filter(c => c.ownerId === ownerId && !c.isMortgaged).length;
+  const minForPartial = (group === 'a' || group === 'h') ? 2 : 3;
+  if (ownedInGroup === allInGroup.length) return 'full';
+  if (ownedInGroup >= minForPartial) return 'partial';
+  return 'none';
 }
 
 function calculateRentDisplay(cell: BoardCellProps, board: BoardCellProps[], ownerId: string): string {
-if (cell.isMortgaged) return 'ЗАЛОЖЕНО';
-if (!ownerId) return '';
-if (cell.type === 'PROPERTY') {
-const status = getMonopolyStatus(board, ownerId, cell.group || '');
-const houses = cell.houses || 0;
-if (houses === 0) {
-if (status === 'full') return String(cell.monopolyRent ?? cell.baseRent ?? 0);
-if (status === 'partial') return String(cell.partialMonopolyRent ?? (cell.baseRent ? cell.baseRent * 2 : 0));
-return String(cell.baseRent ?? 0);
-}
-if (houses === 1) return String(cell.house1Rent ?? 0);
-if (houses === 2) return String(cell.house2Rent ?? 0);
-if (houses === 3) return String(cell.house3Rent ?? 0);
-if (houses === 4) return String(cell.house4Rent ?? 0);
-if (houses === 5) return String(cell.hotelRent ?? 0);
-if (houses >= 6) return String(cell.skyscraperRent ?? 0);
-return '';
-}
-if (cell.type === 'STATION') {
-const count = board.filter(c => c.group === 'station' && c.ownerId === ownerId && !c.isMortgaged).length;
-const rents = [25, 50, 100, 200];
-const baseRent = rents[Math.min(count, 4) - 1] ?? 0;
-return `$${cell.hasDepot ? baseRent * 2 : baseRent}`;
-}
-if (cell.type === 'UTILITY') {
-const count = board.filter(c => c.group === 'utility' && c.ownerId === ownerId && !c.isMortgaged).length;
-const mult = count === 1 ? cell.utilityMultiplier1 : count === 2 ? cell.utilityMultiplier2 : (cell.utilityMultiplier3 ?? 10);
-return `x${mult}`;
-}
-return '';
+  if (!ownerId && cell.price) return `$${cell.price}`;
+  if (!ownerId) return '';
+  if (cell.isMortgaged) return 'ИПОТЕКА';
+  if (cell.type === 'PROPERTY') {
+    const status = getMonopolyStatus(board, ownerId, cell.group || '');
+    const houses = cell.houses || 0;
+    if (houses === 0) {
+      if (status === 'full') return `$${cell.monopolyRent ?? cell.baseRent ?? 0}`;
+      if (status === 'partial') return `$${cell.partialMonopolyRent ?? (cell.baseRent ? cell.baseRent * 2 : 0)}`;
+      return `$${cell.baseRent ?? 0}`;
+    }
+    if (houses === 1) return `$${cell.house1Rent ?? 0}`;
+    if (houses === 2) return `$${cell.house2Rent ?? 0}`;
+    if (houses === 3) return `$${cell.house3Rent ?? 0}`;
+    if (houses === 4) return `$${cell.house4Rent ?? 0}`;
+    if (houses === 5) return `$${cell.hotelRent ?? 0}`;
+    if (houses >= 6) return `$${cell.skyscraperRent ?? 0}`;
+    return '';
+  }
+  if (cell.type === 'STATION') {
+    const count = board.filter(c => c.group === 'station' && c.ownerId === ownerId && !c.isMortgaged).length;
+    const rents = [25, 50, 100, 200];
+    const baseRent = rents[Math.min(count, 4) - 1] ?? 0;
+    return `$${cell.hasDepot ? baseRent * 2 : baseRent}`;
+  }
+  if (cell.type === 'UTILITY') {
+    const count = board.filter(c => c.group === 'utility' && c.ownerId === ownerId && !c.isMortgaged).length;
+    const mult = count === 1 ? cell.utilityMultiplier1 : count === 2 ? cell.utilityMultiplier2 : (cell.utilityMultiplier3 ?? 10);
+    return `x${mult}`;
+  }
+  return '';
 }
 
 function getCellIndicators(houses?: number, hasDepot?: boolean, isMortgaged?: boolean, mortgageTurns?: number): { building: string; mortgage: string } {
@@ -164,9 +218,18 @@ const isSpecialMoveMode = !!validMoveTargets;
 const isValidTarget = !isSpecialMoveMode || validMoveTargets!.includes(cell.position);
 const hasImprovements = (cell.houses || 0) > 0 || cell.hasDepot;
 const isContractDarkened = isContractOpen && hasImprovements;
-const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `${STRIP_SIZE + 2}px 2px 0` : i >= 14 && i <= 25 ? `2px ${STRIP_SIZE + 2}px 2px 2px` : i >= 27 && i <= 38 ? `2px 2px ${STRIP_SIZE + 2}px` : `2px 2px 2px ${STRIP_SIZE + 2}px`) : "2px";
+const stripPad = STRIP_SIZE + 2;
+const contentPadding = hasStrip
+  ? (i >= 1 && i <= 12 ? `2px 2px ${stripPad}px` : i >= 14 && i <= 25 ? `2px 2px 2px ${stripPad}px` : i >= 27 && i <= 38 ? `${stripPad}px 2px 2px` : `2px ${stripPad}px 2px 2px`)
+  : "2px";
 const displayValue = calculateRentDisplay(cell, board, cell.ownerId || '');
-const indicators = getCellIndicators(cell.houses, cell.hasDepot, cell.isMortgaged, cell.mortgageTurnsRemaining);
+
+// Фон: белый + градиент владельца если есть
+const bgColor = isOffered ? '#FFF8DC' : isRequested ? '#E6F3FF' : '#f8f8f8';
+const bgGradient = ownerColor && !isOffered && !isRequested
+  ? `linear-gradient(to top, ${ownerColor}28 0%, transparent 60%)`
+  : 'none';
+
 return (
 <div
 key={cell.position ?? i}
@@ -174,69 +237,153 @@ onClick={() => !isContractDarkened && onCellClick?.(cell)}
 onContextMenu={(e) => { e.preventDefault(); onCellRightClick?.(cell); }}
 style={{
 ...getCellStyle(i),
-background: isOffered ? '#FFD700' : isRequested ? '#00BFFF' : (ownerColor || '#fff'),
-border: isOffered ? '2px solid #B8860B' : isRequested ? '2px solid #007BFF' : (ownerColor ? `2px solid ${ownerColor}` : '1px solid #ccc'),
+background: bgColor,
+backgroundImage: cell.isMortgaged
+  ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.12) 8px, rgba(220,53,69,0.12) 16px)'
+  : bgGradient,
+border: isOffered ? '2px solid #C8A800' : isRequested ? '2px solid #3A7BDB' : '1px solid #d0d0d0',
 boxSizing: "border-box",
-display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-padding: contentPadding, textAlign: "center", overflow: "hidden",
+display: "flex",
+flexDirection: "column",
+alignItems: "center",
+justifyContent: "center",
+padding: contentPadding,
+textAlign: "center",
+overflow: "hidden",
 cursor: onCellClick ? (isContractDarkened ? 'not-allowed' : (isSpecialMoveMode && !isValidTarget ? 'default' : 'pointer')) : 'default',
-filter: isContractDarkened ? 'grayscale(1) brightness(0.4)' : ((isSpecialMoveMode && !isValidTarget) || cell.isMortgaged ? 'grayscale(60%)' : 'none'),
-opacity: isContractDarkened ? 0.3 : (isSpecialMoveMode && !isValidTarget ? 0.5 : (cell.isMortgaged ? 0.7 : 1)),
+filter: isContractDarkened ? 'grayscale(1) brightness(0.4)' : ((isSpecialMoveMode && !isValidTarget) || cell.isMortgaged ? 'grayscale(50%) brightness(0.9)' : 'none'),
+opacity: isContractDarkened ? 0.3 : (isSpecialMoveMode && !isValidTarget ? 0.45 : 1),
 pointerEvents: isContractDarkened || (isSpecialMoveMode && !isValidTarget) ? 'none' : 'auto',
-transition: 'all 0.15s ease', zIndex: (isOffered || isRequested) ? 5 : 1,
-backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.15) 8px, rgba(220,53,69,0.15) 16px)' : 'none'
+transition: 'all 0.15s ease',
+zIndex: (isOffered || isRequested) ? 5 : 1,
 }}
 >
-{hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))} />}
-<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
-<div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
-<div style={{ fontSize: isCorner ? 9 : 7, opacity: 0.8, marginTop: 1, color: ownerColor ? '#fff' : '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-{displayValue && <span>{displayValue}</span>}
-{indicators.building && <span style={{ fontSize: 10, letterSpacing: 1 }}>{indicators.building}</span>}
-{indicators.mortgage && <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>{indicators.mortgage}</span>}
+{/* Цветная полоска с ценой/рентой */}
+{hasStrip && (
+  <div style={getStripStyle(i, getGroupColor(cell.group))}>
+    <span style={getStripTextStyle(i)}>
+      {displayValue || (cell.price ? `$${cell.price}` : '')}
+    </span>
+  </div>
+)}
+
+{/* Постройки на внутренней грани */}
+{hasStrip && !isCorner && (
+  <div style={getInnerEdgeStyle(i)}>
+    <BuildingIndicator houses={cell.houses} hasDepot={cell.hasDepot} cellIndex={i} />
+  </div>
+)}
+
+{/* Основной контент клетки */}
+<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%", flex: 1 }}>
+  <div style={{
+    fontWeight: 600,
+    fontSize: isCorner ? 10 : 7,
+    lineHeight: 1.15,
+    wordBreak: "break-word",
+    overflow: "hidden",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical" as any,
+    color: '#1a1a1a',
+    maxWidth: "100%",
+  }}>
+    {cell.name}
+  </div>
+
+  {/* Для угловых и спецклеток — показываем цену если нет полоски */}
+  {!hasStrip && cell.price && !cell.ownerId && (
+    <div style={{ fontSize: 8, color: '#555', marginTop: 2 }}>${cell.price}</div>
+  )}
+
+  {/* Ипотека */}
+  {cell.isMortgaged && (
+    <div style={{ fontSize: 7, color: '#dc3545', fontWeight: 700, marginTop: 2 }}>
+      🔒 {cell.mortgageTurnsRemaining}х
+    </div>
+  )}
 </div>
-</div>
-<div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 1 }}>
-{occupants.map((p: any) => {
-const idx = players.findIndex((pl: any) => pl.userId === p.userId);
-const pieceId = roomPieces[p.userId] || 'hat';
-return <PieceToken key={p.userId} pieceId={pieceId} color={PLAYER_COLORS[idx % PLAYER_COLORS.length]} size={14} />;
-})}
+
+{/* Фишки игроков на клетке (маленькие кружки) */}
+<div style={{ position: "absolute", bottom: hasStrip ? STRIP_SIZE + 2 : 3, left: 3, display: "flex", gap: 1, flexWrap: "wrap", zIndex: 4 }}>
+  {occupants.map((p: any) => {
+    const idx = players.findIndex((pl: any) => pl.userId === p.userId);
+    return (
+      <div
+        key={p.userId}
+        title={players[idx]?.displayName || p.userId}
+        style={{
+          width: 10, height: 10, borderRadius: "50%",
+          background: PLAYER_COLORS[idx % PLAYER_COLORS.length],
+          border: "1px solid white",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
+        }}
+      />
+    );
+  })}
 </div>
 </div>
 );
 })}
-<div style={{ position: "absolute", top: CORNER, left: CORNER, width: BOARD_SIZE - CORNER * 2, height: BOARD_SIZE - CORNER * 2, pointerEvents: "none", backgroundColor: '#cde6d0', borderRadius: 0 }} />
+
+{/* Центральная зелёная область */}
+<div style={{
+  position: "absolute",
+  top: CORNER, left: CORNER,
+  width: BOARD_SIZE - CORNER * 2,
+  height: BOARD_SIZE - CORNER * 2,
+  pointerEvents: "none",
+  background: "linear-gradient(135deg, #2d5a27 0%, #3a7a32 40%, #2d5a27 100%)",
+  borderRadius: 0,
+}} />
+
+{/* Анимированные SVG-фишки */}
 {gameState?.players?.map((player: any, idx: number) => {
-const visualPos = getPlayerVisualPosition(player);
-const center = getCellCenter(visualPos);
-const color = PLAYER_COLORS[idx % PLAYER_COLORS.length];
-const pieceId = (roomPieces[player.userId] as PieceId) || "hat";
-const TOKEN_SIZE = 32;
-const displayName = players.find(p => p.userId === player.userId)?.displayName;
-return (
-<div
-key={`token-${player.userId}`}
-style={{
-position: "absolute",
-left: center.x - TOKEN_SIZE / 2,
-top: center.y - TOKEN_SIZE / 2,
-width: TOKEN_SIZE,
-height: TOKEN_SIZE,
-zIndex: 100,
-transition: "left 0.6s cubic-bezier(0.25, 0.1, 0.25, 1), top 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-pointerEvents: "none",
-}}
->
-<PieceToken
-pieceId={pieceId}
-color={color}
-size={TOKEN_SIZE}
-label={displayName}
-/>
-</div>
-);
+  const visualPos = getPlayerVisualPosition(player);
+  const center = getCellCenter(visualPos);
+  const color = PLAYER_COLORS[idx % PLAYER_COLORS.length];
+  const pieceId = roomPieces[player.userId] || 'hat';
+
+  // Смещение если несколько игроков на одной клетке
+  const sameCell = gameState.players.filter((p: any) => (animatedPlayers[p.userId] ?? p.position) === visualPos);
+  const myIdxInCell = sameCell.findIndex((p: any) => p.userId === player.userId);
+  const total = sameCell.length;
+  const offsetX = total > 1 ? (myIdxInCell - (total - 1) / 2) * 14 : 0;
+  const offsetY = total > 2 && myIdxInCell >= 2 ? 12 : 0;
+
+  return (
+    <PlayerToken
+      key={`token-${player.userId}`}
+      pieceId={pieceId}
+      color={color}
+      x={center.x + offsetX}
+      y={center.y + offsetY}
+    />
+  );
 })}
 </div>
 );
+}
+
+// Простой компонент для отображения фишки игрока через SVG
+function PlayerToken({ pieceId, color, x, y }: { pieceId: string; color: string; x: number; y: number }) {
+  const TOKEN_SIZE = 32;
+  
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: x - TOKEN_SIZE / 2,
+        top: y - TOKEN_SIZE / 2,
+        width: TOKEN_SIZE,
+        height: TOKEN_SIZE,
+        zIndex: 100,
+        transition: "left 0.6s cubic-bezier(0.25, 0.1, 0.25, 1), top 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+        pointerEvents: "none",
+      }}
+    >
+      <PieceToken pieceId={pieceId as PieceId} color={color} size={TOKEN_SIZE} />
+    </div>
+  );
+}
 }
