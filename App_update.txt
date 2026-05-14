@@ -1,0 +1,359 @@
+// ============================================================
+// ПАТЧ App.tsx — визуальная полировка
+// ============================================================
+
+// 1. ГЛОБАЛЬНЫЕ СТИЛИ — добавить в самом начале компонента App,
+//    внутри useEffect без зависимостей (или рядом с первым useEffect):
+//
+//    useEffect(() => {
+//      const style = document.createElement('style');
+//      style.textContent = GLOBAL_STYLES;
+//      document.head.appendChild(style);
+//      return () => document.head.removeChild(style);
+//    }, []);
+//
+//    Импорт: import { styles, GLOBAL_STYLES } from "./styles";
+
+// ============================================================
+
+// 2. ИНДЕКС ТЕКУЩЕГО ИГРОКА — добавить вычисление цвета:
+//
+//    const PLAYER_COLORS = ['#FF5733','#33FF57','#3357FF','#F333FF','#FF33A8','#33FFF5','#F5FF33','#FF8C33'];
+//    const currentPlayerIdx = gameState ? gameState.currentPlayerIndex : 0;
+//    const currentPlayerColor = PLAYER_COLORS[currentPlayerIdx % PLAYER_COLORS.length];
+
+// ============================================================
+
+// 3. КНОПКА ROLL — заменить на:
+//
+//    <button
+//      onClick={handleRollDice}
+//      disabled={isActionsDisabled || isBalancing}
+//      className="btn-hover"
+//      style={{
+//        ...styles.btnAction,
+//        backgroundColor: '#e8690a',
+//        opacity: (isActionsDisabled || isBalancing) ? 0.42 : 1,
+//        cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer',
+//        animation: (!isActionsDisabled && !isBalancing && isMyTurn)
+//          ? 'rollGlow 2s ease-in-out infinite'
+//          : 'none',
+//        '--glow-color': currentPlayerColor,
+//      } as any}
+//    >
+//      🎲 Бросить кубики
+//    </button>
+
+// ============================================================
+
+// 4. КНОПКА "ИСПОЛЬЗОВАТЬ БИЛЕТ" — заменить на:
+//
+//    <button
+//      onClick={handleUseTicket}
+//      disabled={isActionsDisabled}
+//      className="btn-hover btn-ticket"
+//      style={{
+//        ...styles.btnAction,
+//        backgroundColor: '#0f7485',
+//        opacity: isActionsDisabled ? 0.42 : 1,
+//      }}
+//    >
+//      🎫 Использовать билет
+//    </button>
+
+// ============================================================
+
+// 5. КНОПКА "КУПИТЬ" (в POST_MOVE) — добавить className:
+//
+//    className="btn-hover btn-buy"
+
+// ============================================================
+
+// 6. КНОПКА "ЗАПЛАТИТЬ ДОЛГ" — добавить className:
+//
+//    className="btn-hover btn-pay"
+
+// ============================================================
+
+// 7. КНОПКА "СДАТЬСЯ" — добавить className:
+//
+//    className="btn-hover btn-surrender"
+
+// ============================================================
+
+// 8. КНОПКИ В ТЮРЬМЕ — добавить className="btn-hover":
+//    На "Заплатить $50" и "Бросить кубики (дубль)"
+
+// ============================================================
+
+// 9. ТРОЙНОЙ ДУБЛЬ — заменить оверлей целиком:
+/*
+{isTripleChoice && isMyTurn && !activeContract && (
+  <>
+    {/* Лучи поверх поля */}
+    <div style={{
+      position: 'absolute',
+      top: '50%', left: '50%',
+      width: '150%', height: '150%',
+      background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,215,0,0.06) 20deg, transparent 40deg, rgba(255,215,0,0.04) 60deg, transparent 80deg, rgba(255,215,0,0.06) 100deg, transparent 120deg, rgba(255,215,0,0.04) 140deg, transparent 160deg, rgba(255,215,0,0.06) 180deg, transparent 200deg, rgba(255,215,0,0.04) 220deg, transparent 240deg, rgba(255,215,0,0.06) 260deg, transparent 280deg, rgba(255,215,0,0.04) 300deg, transparent 320deg, rgba(255,215,0,0.06) 340deg, transparent 360deg)',
+      animation: 'raysSpin 6s linear infinite',
+      pointerEvents: 'none',
+      zIndex: 39,
+      borderRadius: '50%',
+    }} />
+    <div style={{
+      position: 'absolute', inset: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'rgba(17,17,17,0.92)',
+      borderRadius: 16, zIndex: 40, pointerEvents: 'none',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontSize: 28, fontWeight: 900,
+          background: 'linear-gradient(90deg, #b8860b, #ffd700, #fffacd, #ffd700, #b8860b)',
+          backgroundSize: '200% auto',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          animation: 'tripleShine 2.5s linear infinite',
+          letterSpacing: -0.5,
+        }}>
+          ТРОЙНОЙ ДУБЛЬ!
+        </div>
+        <div style={{ color: '#888', fontSize: 15, marginTop: 8, fontWeight: 500 }}>
+          Выберите любую клетку
+        </div>
+      </div>
+    </div>
+  </>
+)}
+*/
+
+// ============================================================
+
+// 10. АУКЦИОН-ВЫБОР — заменить оверлей:
+/*
+{isChooseAuction && isMyTurn && !activeContract && (
+  <>
+    <div style={{
+      position: 'absolute',
+      top: '50%', left: '50%',
+      width: '150%', height: '150%',
+      background: 'conic-gradient(from 0deg, transparent 0deg, rgba(0,200,255,0.05) 20deg, transparent 40deg, rgba(0,200,255,0.03) 60deg, transparent 80deg, rgba(0,200,255,0.05) 100deg, transparent 120deg, rgba(0,200,255,0.03) 140deg, transparent 160deg, rgba(0,200,255,0.05) 180deg, transparent 200deg, rgba(0,200,255,0.03) 220deg, transparent 240deg, rgba(0,200,255,0.05) 260deg, transparent 280deg, rgba(0,200,255,0.03) 300deg, transparent 320deg, rgba(0,200,255,0.05) 340deg, transparent 360deg)',
+      animation: 'raysSpin 7s linear infinite',
+      pointerEvents: 'none',
+      zIndex: 39,
+      borderRadius: '50%',
+    }} />
+    <div style={{
+      position: 'absolute', inset: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'rgba(17,17,17,0.92)',
+      borderRadius: 16, zIndex: 40, pointerEvents: 'none',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontSize: 22, fontWeight: 800,
+          background: 'linear-gradient(90deg, #0a6e8a, #00d4ff, #e0f8ff, #00d4ff, #0a6e8a)',
+          backgroundSize: '200% auto',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          animation: 'auctionShine 2.5s linear infinite',
+          letterSpacing: -0.3,
+        }}>
+          ВЫБЕРИТЕ ОБЪЕКТ ДЛЯ АУКЦИОНА
+        </div>
+        <div style={{ color: '#888', fontSize: 14, marginTop: 8 }}>
+          Кликните на свободную клетку поля
+        </div>
+      </div>
+    </div>
+  </>
+)}
+*/
+
+// ============================================================
+
+// 11. АУКЦИОННОЕ ОКНО ТОРГОВ — заменить блок {auctionState && ...}
+//     (это окно снаружи, которое рендерится поверх всего как fixed):
+/*
+{auctionState && (() => {
+  const auctionCell = board[auctionState.cellPosition];
+  const GROUP_COLORS: Record<string,string> = {
+    'a':'#8B4513','b':'#5BACD8','c':'#E8548A','d':'#E8880A',
+    'e':'#D63030','f':'#C8A800','g':'#2A7A2A','h':'#1A1A8C',
+    'station':'#2a2a2a','utility':'#4a5568',
+  };
+  const cellHeaderColor = auctionCell?.group ? (GROUP_COLORS[auctionCell.group] || '#333') : '#333';
+  const bidAnimKey = auctionState.currentBid;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      backgroundColor: 'rgba(0,0,0,0.88)',
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      zIndex: 99999, backdropFilter: 'blur(6px)',
+    }}>
+      <div style={{
+        width: 420,
+        backgroundColor: '#141414',
+        borderRadius: 22,
+        border: '1px solid #2a2a2a',
+        overflow: 'hidden',
+        boxShadow: '0 32px 100px rgba(0,0,0,0.8)',
+      }}>
+        {/* Шапка с цветом группы */}
+        <div style={{
+          background: cellHeaderColor,
+          padding: '18px 22px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Аукцион
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginTop: 2 }}>
+              {auctionCell?.name || '—'}
+            </div>
+          </div>
+          {/* SVG-дуга таймера */}
+          <div style={{ position: 'relative', width: 52, height: 52 }}>
+            <svg width={52} height={52} viewBox="0 0 52 52">
+              <circle cx={26} cy={26} r={22} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={4} />
+              <circle
+                cx={26} cy={26} r={22}
+                fill="none"
+                stroke={auctionTimer <= 3 ? '#ef4444' : 'rgba(255,255,255,0.85)'}
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 22}`}
+                strokeDashoffset={`${2 * Math.PI * 22 * (1 - auctionTimer / 10)}`}
+                transform="rotate(-90 26 26)"
+                style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }}
+              />
+            </svg>
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, fontWeight: 800,
+              color: auctionTimer <= 3 ? '#ef4444' : '#fff',
+              animation: auctionTimer <= 3 ? 'auctionTimerPulse 0.5s ease-in-out infinite' : 'none',
+            }}>
+              {auctionTimer}
+            </div>
+          </div>
+        </div>
+
+        {/* Тело */}
+        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Текущая ставка */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: '#666', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+              Текущая ставка
+            </div>
+            <div
+              key={bidAnimKey}
+              style={{
+                fontSize: 38, fontWeight: 900, color: '#22c55e',
+                letterSpacing: -1, marginTop: 4,
+                animation: 'bidPop 0.35s ease-out',
+              }}
+            >
+              ${auctionState.currentBid}
+            </div>
+          </div>
+
+          {/* Ход кого */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px', backgroundColor: '#1e1e1e', borderRadius: 10,
+            border: '1px solid #2a2a2a',
+          }}>
+            {(() => {
+              const bidder = players.find(p => p.userId === auctionState.currentBidderId);
+              const bidderIdx = players.findIndex(p => p.userId === auctionState.currentBidderId);
+              const bColor = PLAYER_COLORS[bidderIdx % PLAYER_COLORS.length];
+              return <>
+                <img src={bidder?.avatarUrl} style={{ width: 32, height: 32, borderRadius: '50%', border: `2px solid ${bColor}`, objectFit: 'cover' }} alt="" />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#eee' }}>{bidder?.displayName || '...'}</div>
+                  <div style={{ fontSize: 11, color: '#666' }}>делает ставку</div>
+                </div>
+              </>;
+            })()}
+          </div>
+
+          {/* Кнопки */}
+          {auctionState.currentBidderId === myProfile?.id ? (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => socket?.emit("auction_bid")}
+                disabled={!canBid}
+                className="btn-hover btn-buy"
+                style={{
+                  ...styles.btnSuccess,
+                  flex: 1, fontSize: 16, fontWeight: 700,
+                  padding: '14px',
+                  opacity: canBid ? 1 : 0.42,
+                  cursor: canBid ? 'pointer' : 'not-allowed',
+                }}
+              >
+                +$10 Поднять ставку
+              </button>
+              <button
+                onClick={() => socket?.emit("auction_drop")}
+                className="btn-hover"
+                style={{
+                  ...styles.btnSecondary,
+                  flex: 1, fontSize: 15, fontWeight: 600,
+                  padding: '14px',
+                  color: '#f87171',
+                  borderColor: '#3a2020',
+                }}
+              >
+                Отказаться
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              textAlign: 'center', color: '#555', fontSize: 14,
+              padding: '14px', backgroundColor: '#1a1a1a', borderRadius: 10,
+              border: '1px solid #222',
+            }}>
+              Ожидание хода...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+})()}
+*/
+
+// ============================================================
+
+// 12. ИТОГ ДОГОВОРА — добавить к contractTotal каждой колонки:
+//     В каждой колонке вычислить прибыль/убыток и покрасить:
+/*
+const myGain = (isPr ? requestedTotal - offeredTotal : offeredTotal - requestedTotal);
+// ...
+<div style={{
+  ...styles.contractTotal,
+  color: myGain > 0 ? '#22c55e' : myGain < 0 ? '#f87171' : '#eee',
+}}>
+  {myGain > 0 ? '+' : ''}{myGain !== 0 ? `$${Math.abs(myGain)}` : 'Нейтрально'}
+</div>
+*/
+
+// ============================================================
+
+// 13. КАРТОЧКА ИМУЩЕСТВА (buildModal) — заменить шапку:
+//     Найти блок с backgroundColor: selectedCell.group ? GROUP_COLORS...
+//     Уже стилизован хорошо, добавить только:
+//     - fontSize названия: 15px fontWeight 800
+//     - в таблице рент подсветить текущий уровень:
+/*
+// В rentRow текущего уровня добавить:
+style={{ ...styles.rentRow, backgroundColor: '#1e3a1e', borderRadius: 4, color: '#4ade80', fontWeight: 700 }}
+*/
