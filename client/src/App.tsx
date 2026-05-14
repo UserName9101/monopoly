@@ -12,7 +12,7 @@ ContractProposal, RoomPayload, RoomSummary, ChatMessage, AuctionState
 import TimerDisplay from "./components/TimerDisplay";
 import PlayerCard from "./components/PlayerCard";
 import { getValidTicketTargets, validateBuild, validateSell, validateMortgage, validateUnmortgage, calculateTotalCapital } from "./utils/boardLogic";
-import { styles, GLOBAL_STYLES } from "./styles";
+import { styles } from "./styles";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -72,14 +72,6 @@ if (mortgaged) return `⚠️ Снимите ипотеку с "${groupName}" д
 return `⚠️ Выровняйте количество домов в наборе "${groupName}" перед ходом.`;
 }, [balanceGroupId, board, myProfile]);
 
-// Инъекция глобальных стилей с анимациями
-useEffect(() => {
-  const style = document.createElement('style');
-  style.textContent = GLOBAL_STYLES;
-  document.head.appendChild(style);
-  return () => document.head.removeChild(style);
-}, []);
-
 useEffect(() => { document.documentElement.style.margin = "0"; document.documentElement.style.padding = "0"; document.documentElement.style.overflow = "hidden"; document.body.style.margin = "0"; document.body.style.padding = "0"; document.body.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; document.body.style.overflow = ""; }; }, []);
 useEffect(() => { const calculateScale = () => { if (!gameCanvasRef.current) return; setScale(Math.min(gameCanvasRef.current.clientWidth / IDEAL_FULL_WIDTH, gameCanvasRef.current.clientHeight / IDEAL_FULL_HEIGHT, 1.1)); }; window.addEventListener("resize", calculateScale); const t = setTimeout(calculateScale, 50); return () => { window.removeEventListener("resize", calculateScale); clearTimeout(t); }; }, []);
 useEffect(() => { if (!token) { setSocket(null); return; } const s = io(API, { auth: { token } }); setSocket(s); s.on("connect_error", (e) => { if (e.message === "Invalid token") handleLogout(); }); return () => s.disconnect(); }, [token]);
@@ -100,8 +92,6 @@ const addLog = (text: string, isSystem = true) => setMessages(p => [...p, { id: 
 const isHost = socketId && hostId && socketId === hostId;
 const isGameStarted = roomStatus === "PLAYING";
 const isInRoom = roomId !== "";
-const currentPlayerIdx = gameState ? gameState.currentPlayerIndex : 0;
-const currentPlayerColor = PLAYER_COLORS[currentPlayerIdx % PLAYER_COLORS.length];
 const isMyTurn = gameState && myProfile ? gameState.players[gameState.currentPlayerIndex]?.userId === myProfile.id : false;
 const isTripleChoice = gameState?.activeAction?.type === "TRIPLE_CHOICE";
 const isChooseAuction = gameState?.activeAction?.type === "CHOOSE_AUCTION";
@@ -273,28 +263,28 @@ return (
 <div style={styles.appContainer}>
 {(!isInRoom || roomStatus !== "PLAYING") && (
 <header style={styles.header}>
-<div className="btn-hover btn-surrender" style={{ ...styles.headerInner, maxWidth: isInRoom ? `${IDEAL_FULL_WIDTH}px` : '860px' }}>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-{myProfile && <img src={myProfile.avatarUrl} alt="" className="btn-hover btn-surrender" style={{ width: 32, height: 32, borderRadius: '50%' }} />}
-<span className="btn-hover btn-surrender" style={{ fontWeight: 700, color: '#eee' }}>{myProfile?.displayName}</span>
+<div style={{ ...styles.headerInner, maxWidth: isInRoom ? `${IDEAL_FULL_WIDTH}px` : '860px' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+{myProfile && <img src={myProfile.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%' }} />}
+<span style={{ fontWeight: 700, color: '#eee' }}>{myProfile?.displayName}</span>
 {isInRoom && (
-<div className="btn-hover btn-surrender" style={{ marginLeft: '20px', display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 14px', backgroundColor: '#333', borderRadius: '9999px', fontSize: '14px', fontWeight: 600, color: '#eee' }}>
+<div style={{ marginLeft: '20px', display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 14px', backgroundColor: '#333', borderRadius: '9999px', fontSize: '14px', fontWeight: 600, color: '#eee' }}>
 Room: {roomId.substring(0, 8)}...
 <button onClick={handleLeaveRoom} style={styles.btnSmall}>Leave</button>
 </div>
 )}
 </div>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 {isInRoom ? (
 !isGameStarted ? (
 <>
-<span className="btn-hover btn-surrender" style={{ fontSize: '14px', color: '#aaa' }}>LOBBY ({players.length})</span>
-{isHost ? <button onClick={handleStartGame} style={styles.btnSuccess}>Start</button> : <span className="btn-hover btn-surrender" style={{ color: '#aaa', fontSize: '14px' }}>Waiting...</span>}
+<span style={{ fontSize: '14px', color: '#aaa' }}>LOBBY ({players.length})</span>
+{isHost ? <button onClick={handleStartGame} style={styles.btnSuccess}>Start</button> : <span style={{ color: '#aaa', fontSize: '14px' }}>Waiting...</span>}
 </>
 ) : (
 <>
-<span className="btn-hover btn-surrender" style={{ fontSize: '14px', color: '#aaa' }}>PLAYING</span>
-{isHost && <button onClick={handleFinishGame} className="btn-hover btn-surrender" style={{ ...styles.btnSmall, color: '#ff6b6b', padding: '4px 12px' }}>End</button>}
+<span style={{ fontSize: '14px', color: '#aaa' }}>PLAYING</span>
+{isHost && <button onClick={handleFinishGame} style={{ ...styles.btnSmall, color: '#ff6b6b', padding: '4px 12px' }}>End</button>}
 </>
 )
 ) : null}
@@ -304,13 +294,13 @@ Room: {roomId.substring(0, 8)}...
 </div>
 </header>
 )}
-<div className="btn-hover btn-surrender" style={{ ...styles.mainContent, height: isGameStarted && isInRoom ? '100vh' : 'calc(100vh - 60px)' }}>
+<div style={{ ...styles.mainContent, height: isGameStarted && isInRoom ? '100vh' : 'calc(100vh - 60px)' }}>
 {!isInRoom && (
 <div style={styles.lobbyWrapper}>
 <div style={styles.createCard}>
-<h3 className="btn-hover btn-surrender" style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '26px', color: '#eee' }}>Создать игру</h3>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-<select value={createMode} onChange={e => setCreateMode(e.target.value as any)} className="btn-hover btn-surrender" style={{ ...styles.select, color: '#eee' }}>
+<h3 style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '26px', color: '#eee' }}>Создать игру</h3>
+<div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+<select value={createMode} onChange={e => setCreateMode(e.target.value as any)} style={{ ...styles.select, color: '#eee' }}>
 <option value="MEGA">Мега (8 игроков)</option>
 <option value="CLASSIC">Классика (4 игрока)</option>
 </select>
@@ -318,24 +308,24 @@ Room: {roomId.substring(0, 8)}...
 </div>
 </div>
 <div style={styles.lobbyList}>
-<h3 className="btn-hover btn-surrender" style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#eee' }}>Доступные комнаты</h3>
+<h3 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#eee' }}>Доступные комнаты</h3>
 {availableRooms.filter(r => r.id !== roomId).length === 0 ? (
-<p className="btn-hover btn-surrender" style={{ color: '#888', textAlign: 'center', padding: '60px 0', fontSize: '17px' }}>Нет открытых комнат.<br />Создайте первую!</p>
+<p style={{ color: '#888', textAlign: 'center', padding: '60px 0', fontSize: '17px' }}>Нет открытых комнат.<br />Создайте первую!</p>
 ) : (
 <div style={styles.roomList}>
 {availableRooms.filter(r => r.id !== roomId).map(r => (
 <div key={r.id} style={styles.roomItem}>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-<span className="btn-hover btn-surrender" style={{ ...styles.badge, backgroundColor: r.mode === 'MEGA' ? '#ff9500' : '#0071e3' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+<span style={{ ...styles.badge, backgroundColor: r.mode === 'MEGA' ? '#ff9500' : '#0071e3' }}>
 {r.mode === 'MEGA' ? 'Мега' : 'Классика'}
 </span>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', gap: -4 }}>
+<div style={{ display: 'flex', gap: -4 }}>
 {r.playersPreview.slice(0, 5).map((p: any, i: number) => (
 <img
 key={i}
 src={p.avatarUrl}
 title={p.displayName}
-className="btn-hover btn-surrender" style={{
+style={{
 width: 28,
 height: 28,
 borderRadius: '50%',
@@ -346,7 +336,7 @@ objectFit: 'cover',
 />
 ))}
 {r.playersPreview.length > 5 && (
-<div className="btn-hover btn-surrender" style={{
+<div style={{
 width: 28,
 height: 28,
 borderRadius: '50%',
@@ -363,7 +353,7 @@ color: '#aaa',
 </div>
 )}
 </div>
-<span className="btn-hover btn-surrender" style={{ fontSize: '14px', color: '#888' }}>
+<span style={{ fontSize: '14px', color: '#888' }}>
 {r.playerCount}/{r.maxPlayers}
 </span>
 </div>
@@ -382,7 +372,7 @@ style={styles.btnSecondary}
 </div>
 )}
 {isInRoom && !isGameStarted && (
-  <div className="btn-hover btn-surrender" style={{
+  <div style={{
     maxWidth: 820,
     margin: "0 auto",
     padding: "32px 20px",
@@ -391,17 +381,17 @@ style={styles.btnSecondary}
   }}>
     {/* Список игроков в комнате */}
     <div style={styles.lobbyList}>
-      <h3 className="btn-hover btn-surrender" style={{ margin: "0 0 20px 0", fontSize: "20px", color: "#eee" }}>
+      <h3 style={{ margin: "0 0 20px 0", fontSize: "20px", color: "#eee" }}>
         Игроки в комнате ({players.length}/{createMode === "MEGA" ? 8 : 4})
       </h3>
-      <div className="btn-hover btn-surrender" style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
         {players.map((p, i) => {
           const isMe = p.userId === myProfile?.id;
           const piece = roomPieces[p.userId] || "hat";
           // Цвет берем по индексу, но для MEGA режима цветов должно хватать (нужно убедиться в массиве PLAYER_COLORS)
           const color = PLAYER_COLORS[i % PLAYER_COLORS.length];
           return (
-            <div key={p.userId} className="btn-hover btn-surrender" style={{
+            <div key={p.userId} style={{
               display: "flex",
               alignItems: "center",
               gap: 14,
@@ -410,21 +400,21 @@ style={styles.btnSecondary}
               borderRadius: 12,
               border: isMe ? `1px solid ${color}44` : "1px solid transparent",
             }}>
-              <img src={p.avatarUrl} className="btn-hover btn-surrender" style={{
+              <img src={p.avatarUrl} style={{
                 width: 40, height: 40, borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${color}`,
               }} alt="" />
               <PieceToken pieceId={piece} color={color} size={20} />
-              <div className="btn-hover btn-surrender" style={{ flex: 1 }}>
-                <div className="btn-hover btn-surrender" style={{ fontWeight: 600, color: "#eee", fontSize: 15 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, color: "#eee", fontSize: 15 }}>
                   {p.displayName}
-                  {isMe && <span className="btn-hover btn-surrender" style={{ fontSize: 12, color: color, marginLeft: 8 }}>Вы</span>}
+                  {isMe && <span style={{ fontSize: 12, color: color, marginLeft: 8 }}>Вы</span>}
                 </div>
                 {!p.isOnline && (
-                  <div className="btn-hover btn-surrender" style={{ fontSize: 12, color: "#666" }}>Офлайн</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>Офлайн</div>
                 )}
               </div>
-              <div className="btn-hover btn-surrender" style={{
+              <div style={{
                 width: 8, height: 8, borderRadius: "50%",
                 background: p.isOnline ? "#28a745" : "#555",
               }} />
@@ -436,7 +426,7 @@ style={styles.btnSecondary}
         {Array.from({
           length: Math.max(0, (createMode === "MEGA" ? 8 : 4) - players.length)
         }).map((_, i) => (
-          <div key={`empty-${i}`} className="btn-hover btn-surrender" style={{
+          <div key={`empty-${i}`} style={{
             display: "flex",
             alignItems: "center",
             gap: 14,
@@ -446,8 +436,8 @@ style={styles.btnSecondary}
             border: "1px dashed #333",
             opacity: 0.4,
           }}>
-            <div className="btn-hover btn-surrender" style={{ width: 40, height: 40, borderRadius: "50%", background: "#333" }} />
-            <div className="btn-hover btn-surrender" style={{ color: "#555", fontSize: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#333" }} />
+            <div style={{ color: "#555", fontSize: 14 }}>
               Ожидание игрока... ({players.length + i + 1}/{createMode === "MEGA" ? 8 : 4})
             </div>
           </div>
@@ -456,7 +446,7 @@ style={styles.btnSecondary}
 
       {/* Выбор фишки */}
       {myProfile && (
-        <div className="btn-hover btn-surrender" style={{
+        <div style={{
           padding: "16px",
           backgroundColor: "#1e1e1e",
           borderRadius: 12,
@@ -477,8 +467,8 @@ style={styles.btnSecondary}
 )}
 {isInRoom && isGameStarted && (
 <div ref={gameCanvasRef} style={styles.gameCanvasContainer}>
-<div className="btn-hover btn-surrender" style={{ ...styles.gameCanvasInner, transform: `scale(${scale})`, transformOrigin: 'center center' }}>
-<div className="btn-hover btn-surrender" style={{ ...styles.sideColumn, ...(isTripleChoice || isChooseAuction ? { filter: 'brightness(0.65) saturate(0.7)' } : {}) }}>
+<div style={{ ...styles.gameCanvasInner, transform: `scale(${scale})`, transformOrigin: 'center center' }}>
+<div style={{ ...styles.sideColumn, ...(isTripleChoice || isChooseAuction ? { filter: 'brightness(0.65) saturate(0.7)' } : {}) }}>
 {[0,1,2,3].map(i => {
 const p = players[i] || null;
 const ic = !!p && gameState?.players[gameState?.currentPlayerIndex]?.userId === p.userId;
@@ -493,7 +483,7 @@ return <PlayerCard key={p ? p.userId : `el${i}`} player={p} index={i} gameState=
 <div style={styles.centerChatOverlay}>
 {activeContract && myProfile && (
 <div style={styles.contractModal}>
-<div style={styles.contractHeader}><span className="btn-hover btn-surrender" style={{color: '#eee'}}>Contract</span>{contractTimer !== null && <span className="btn-hover btn-surrender" style={{ color: contractTimer <= 5 ? '#dc3545' : '#999', fontWeight: 'bold' }}>{contractTimer}s</span>}</div>
+<div style={styles.contractHeader}><span style={{color: '#eee'}}>Contract</span>{contractTimer !== null && <span style={{ color: contractTimer <= 5 ? '#dc3545' : '#999', fontWeight: 'bold' }}>{contractTimer}s</span>}</div>
 <div style={styles.contractColumns}>
 {[activeContract.proposerId, activeContract.targetId].map((tid) => {
 const pr = players.find(x => x.userId === tid);
@@ -502,7 +492,7 @@ const total = isPr ? offeredTotal : requestedTotal;
 const props = isPr ? selectedProperties.offered : selectedProperties.requested;
 return (
 <div key={tid} style={styles.contractColumn}>
-<div style={styles.contractPlayerInfo}><img src={pr?.avatarUrl} style={styles.contractAvatar} alt="" /><div><div className="btn-hover btn-surrender" style={{ fontWeight: 600, color: '#eee' }}>{pr?.displayName}</div><div className="btn-hover btn-surrender" style={{ fontSize: 12, color: '#888' }}>{isPr ? 'Offering' : 'Requesting'}</div></div></div>
+<div style={styles.contractPlayerInfo}><img src={pr?.avatarUrl} style={styles.contractAvatar} alt="" /><div><div style={{ fontWeight: 600, color: '#eee' }}>{pr?.displayName}</div><div style={{ fontSize: 12, color: '#888' }}>{isPr ? 'Offering' : 'Requesting'}</div></div></div>
 <div style={styles.contractOfferSection}>
 <label style={styles.contractLabel}>Money</label>
 {activeContract.proposerId === myProfile.id ? (
@@ -512,8 +502,8 @@ return (
 <div style={styles.contractOfferSection}>
 <label style={styles.contractLabel}>Properties</label>
 <div style={styles.contractPropertiesList}>
-{props.map(pos => { const c = board[pos]; return <div key={pos} style={styles.contractPropertyItem}><span className="btn-hover btn-surrender" style={{color:'#eee'}}>{c?.name}</span></div>; })}
-{activeContract.proposerId === myProfile.id && props.length === 0 && <div className="btn-hover btn-surrender" style={{ fontSize: 11, color: '#888' }}>Click board</div>}
+{props.map(pos => { const c = board[pos]; return <div key={pos} style={styles.contractPropertyItem}><span style={{color:'#eee'}}>{c?.name}</span></div>; })}
+{activeContract.proposerId === myProfile.id && props.length === 0 && <div style={{ fontSize: 11, color: '#888' }}>Click board</div>}
 </div>
 </div>
 <div style={styles.contractTotal}>Total: ${total}</div>
@@ -524,7 +514,7 @@ return (
 <div style={styles.contractButtons}>
 {activeContract.proposerId === myProfile.id ? (
 <>
-<button onClick={handleProposeContract} className="btn-hover btn-surrender" style={{ ...styles.btnPrimary, opacity: isContractValid ? 1 : 0.6, cursor: isContractValid ? 'pointer' : 'not-allowed' }} disabled={!isContractValid}>Propose</button>
+<button onClick={handleProposeContract} style={{ ...styles.btnPrimary, opacity: isContractValid ? 1 : 0.6, cursor: isContractValid ? 'pointer' : 'not-allowed' }} disabled={!isContractValid}>Propose</button>
 <button onClick={handleCancelContract} style={styles.btnSecondary}>Cancel</button>
 </>
 ) : (
@@ -538,84 +528,84 @@ return (
 )}
 {selectedCell && (
 <div className="build-modal" style={styles.buildModal}>
-<div className="btn-hover btn-surrender" style={{ backgroundColor: selectedCell.group ? GROUP_COLORS[selectedCell.group] || '#555' : '#555', padding: '12px 16px', color: '#fff' }}>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-<span className="btn-hover btn-surrender" style={{ fontWeight: 700, fontSize: 16 }}>{selectedCell.name}</span>
-<button onClick={() => setSelectedCellPositionForBuild(null)} className="btn-hover btn-surrender" style={{ background: 'none', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer' }}>×</button>
+<div style={{ backgroundColor: selectedCell.group ? GROUP_COLORS[selectedCell.group] || '#555' : '#555', padding: '12px 16px', color: '#fff' }}>
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+<span style={{ fontWeight: 700, fontSize: 16 }}>{selectedCell.name}</span>
+<button onClick={() => setSelectedCellPositionForBuild(null)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer' }}>×</button>
 </div>
-{selectedCell.group && <div className="btn-hover btn-surrender" style={{ fontSize: 12, marginTop: 2, opacity: 0.8 }}>GROUP {selectedCell.group.toUpperCase()}</div>}
+{selectedCell.group && <div style={{ fontSize: 12, marginTop: 2, opacity: 0.8 }}>GROUP {selectedCell.group.toUpperCase()}</div>}
 {isMyProperty && isMyTurn ? (
-<div className="btn-hover btn-surrender" style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+<div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
 {selectedCell.type === 'PROPERTY' && !selectedCell.isMortgaged && (
 <>
-<button onClick={handleBuild} disabled={!buildValidation.canBuild} className="btn-hover btn-surrender" style={{ ...styles.btnPrimary, flex: 1, fontSize: 11, padding: '6px 4px', opacity: buildValidation.canBuild ? 1 : 0.5, cursor: buildValidation.canBuild ? 'pointer' : 'not-allowed' }}>Buy House<br/><span className="btn-hover btn-surrender" style={{fontSize:10}}>${buildCost}</span>{!buildValidation.canBuild && <div className="btn-hover btn-surrender" style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{buildValidation.reason}</div>}</button>
-<button onClick={selectedCell.houses === 0 ? handleMortgage : handleSell} disabled={selectedCell.houses === 0 ? !mortgageValidation.canMortgage : !sellValidation.canSell} className="btn-hover btn-surrender" style={{ ...styles.btnSecondary, flex: 1, fontSize: 11, padding: '6px 4px', opacity: (selectedCell.houses === 0 ? mortgageValidation.canMortgage : sellValidation.canSell) ? 1 : 0.5, cursor: (selectedCell.houses === 0 ? mortgageValidation.canMortgage : sellValidation.canSell) ? 'pointer' : 'not-allowed' }}>{selectedCell.houses === 0 ? 'Mortgage' : 'Sell House'}<br/><span className="btn-hover btn-surrender" style={{fontSize:10}}>${selectedCell.houses === 0 ? Math.floor((selectedCell.price || 0) * 0.5) : sellRefund}</span>{selectedCell.houses !== 0 && !sellValidation.canSell && <div className="btn-hover btn-surrender" style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{sellValidation.reason}</div>}{selectedCell.houses === 0 && !mortgageValidation.canMortgage && <div className="btn-hover btn-surrender" style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
+<button onClick={handleBuild} disabled={!buildValidation.canBuild} style={{ ...styles.btnPrimary, flex: 1, fontSize: 11, padding: '6px 4px', opacity: buildValidation.canBuild ? 1 : 0.5, cursor: buildValidation.canBuild ? 'pointer' : 'not-allowed' }}>Buy House<br/><span style={{fontSize:10}}>${buildCost}</span>{!buildValidation.canBuild && <div style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{buildValidation.reason}</div>}</button>
+<button onClick={selectedCell.houses === 0 ? handleMortgage : handleSell} disabled={selectedCell.houses === 0 ? !mortgageValidation.canMortgage : !sellValidation.canSell} style={{ ...styles.btnSecondary, flex: 1, fontSize: 11, padding: '6px 4px', opacity: (selectedCell.houses === 0 ? mortgageValidation.canMortgage : sellValidation.canSell) ? 1 : 0.5, cursor: (selectedCell.houses === 0 ? mortgageValidation.canMortgage : sellValidation.canSell) ? 'pointer' : 'not-allowed' }}>{selectedCell.houses === 0 ? 'Mortgage' : 'Sell House'}<br/><span style={{fontSize:10}}>${selectedCell.houses === 0 ? Math.floor((selectedCell.price || 0) * 0.5) : sellRefund}</span>{selectedCell.houses !== 0 && !sellValidation.canSell && <div style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{sellValidation.reason}</div>}{selectedCell.houses === 0 && !mortgageValidation.canMortgage && <div style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
 </>
 )}
 {selectedCell.type === 'STATION' && !selectedCell.isMortgaged && (
 <>
-<button onClick={handleToggleDepot} disabled={selectedCell.hasDepot ? false : (currentPlayerMoney || 0) < 100 || (!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station')} className="btn-hover btn-surrender" style={{ ...styles.btnPrimary, flex: 1, fontSize: 12, padding: '6px', opacity: (selectedCell.hasDepot || ((currentPlayerMoney || 0) >= 100 && !(!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station'))) ? 1 : 0.5, cursor: (selectedCell.hasDepot || ((currentPlayerMoney || 0) >= 100 && !(!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station'))) ? 'pointer' : 'not-allowed' }}>{selectedCell.hasDepot ? 'Sell Depot (+$50)' : 'Build Depot ($100)'}</button>
-<button onClick={selectedCell.hasDepot ? () => {} : handleMortgage} disabled={selectedCell.hasDepot ? false : !mortgageValidation.canMortgage} className="btn-hover btn-surrender" style={{ ...styles.btnSecondary, flex: 1, fontSize: 12, padding: '6px', opacity: (selectedCell.hasDepot || mortgageValidation.canMortgage) ? 1 : 0.5, cursor: (selectedCell.hasDepot || mortgageValidation.canMortgage) ? 'pointer' : 'not-allowed' }}>{selectedCell.hasDepot ? 'Depo Active' : 'Mortgage'}<br/><span className="btn-hover btn-surrender" style={{fontSize:10}}>{selectedCell.hasDepot ? '' : `+${Math.floor((selectedCell.price || 0) * 0.5)}`}</span>{!selectedCell.hasDepot && !mortgageValidation.canMortgage && <div className="btn-hover btn-surrender" style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
+<button onClick={handleToggleDepot} disabled={selectedCell.hasDepot ? false : (currentPlayerMoney || 0) < 100 || (!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station')} style={{ ...styles.btnPrimary, flex: 1, fontSize: 12, padding: '6px', opacity: (selectedCell.hasDepot || ((currentPlayerMoney || 0) >= 100 && !(!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station'))) ? 1 : 0.5, cursor: (selectedCell.hasDepot || ((currentPlayerMoney || 0) >= 100 && !(!!gameState?.buildLimitsThisTurn?.['station'] && gameState?.forcedBalanceGroupId !== 'station'))) ? 'pointer' : 'not-allowed' }}>{selectedCell.hasDepot ? 'Sell Depot (+$50)' : 'Build Depot ($100)'}</button>
+<button onClick={selectedCell.hasDepot ? () => {} : handleMortgage} disabled={selectedCell.hasDepot ? false : !mortgageValidation.canMortgage} style={{ ...styles.btnSecondary, flex: 1, fontSize: 12, padding: '6px', opacity: (selectedCell.hasDepot || mortgageValidation.canMortgage) ? 1 : 0.5, cursor: (selectedCell.hasDepot || mortgageValidation.canMortgage) ? 'pointer' : 'not-allowed' }}>{selectedCell.hasDepot ? 'Depo Active' : 'Mortgage'}<br/><span style={{fontSize:10}}>{selectedCell.hasDepot ? '' : `+${Math.floor((selectedCell.price || 0) * 0.5)}`}</span>{!selectedCell.hasDepot && !mortgageValidation.canMortgage && <div style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
 </>
 )}
 {selectedCell.type === 'UTILITY' && !selectedCell.isMortgaged && (
-<button onClick={handleMortgage} disabled={!mortgageValidation.canMortgage} className="btn-hover btn-surrender" style={{ ...styles.btnSecondary, flex: 1, fontSize: 12, padding: '6px 4px', opacity: mortgageValidation.canMortgage ? 1 : 0.5, cursor: mortgageValidation.canMortgage ? 'pointer' : 'not-allowed' }}>Mortgage<br/><span className="btn-hover btn-surrender" style={{fontSize:10}}>${Math.floor((selectedCell.price || 0) * 0.5)}</span>{!mortgageValidation.canMortgage && <div className="btn-hover btn-surrender" style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
+<button onClick={handleMortgage} disabled={!mortgageValidation.canMortgage} style={{ ...styles.btnSecondary, flex: 1, fontSize: 12, padding: '6px 4px', opacity: mortgageValidation.canMortgage ? 1 : 0.5, cursor: mortgageValidation.canMortgage ? 'pointer' : 'not-allowed' }}>Mortgage<br/><span style={{fontSize:10}}>${Math.floor((selectedCell.price || 0) * 0.5)}</span>{!mortgageValidation.canMortgage && <div style={{fontSize:9, marginTop:2, color:'#ffcccc'}}>{mortgageValidation.reason}</div>}</button>
 )}
 {selectedCell.isMortgaged && (
-<button onClick={handleUnmortgage} disabled={!unmortgageValidation.canUnmortgage} className="btn-hover btn-surrender" style={{ ...styles.btnSuccess, width: '100%', fontSize: 12, padding: '6px', opacity: unmortgageValidation.canUnmortgage ? 1 : 0.5, cursor: unmortgageValidation.canUnmortgage ? 'pointer' : 'not-allowed' }}>Unmortgage (${unmortgageCost})</button>
+<button onClick={handleUnmortgage} disabled={!unmortgageValidation.canUnmortgage} style={{ ...styles.btnSuccess, width: '100%', fontSize: 12, padding: '6px', opacity: unmortgageValidation.canUnmortgage ? 1 : 0.5, cursor: unmortgageValidation.canUnmortgage ? 'pointer' : 'not-allowed' }}>Unmortgage (${unmortgageCost})</button>
 )}
 </div>
 ) : !isMyProperty && (
-<div className="btn-hover btn-surrender" style={{ fontSize: 12, color: '#aaa', marginTop: 8, textAlign: 'center' }}>
+<div style={{ fontSize: 12, color: '#aaa', marginTop: 8, textAlign: 'center' }}>
 {selectedCell.ownerId ? `Владелец: ${players.find(p => p.userId === selectedCell.ownerId)?.displayName || '???'}` : 'Свободно'}
 </div>
 )}
 </div>
-<div className="btn-hover btn-surrender" style={{ padding: '8px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' }}>
+<div style={{ padding: '8px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' }}>
 {selectedCell.type === 'PROPERTY' && (
 <>
-<div className="btn-hover btn-surrender" style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Стройте филиалы, чтобы увеличить ренту.</div>
-<div style={styles.rentBlock}><div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>Base:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${selectedCell.baseRent || 0}</span></div>{selectedCell.partialMonopolyRent && <div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>Partial:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${selectedCell.partialMonopolyRent}</span></div>}{selectedCell.monopolyRent && <div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>Monopoly:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${selectedCell.monopolyRent}</span></div>}</div>
-<div style={styles.rentBlock}>{[1,2,3,4].map(n => <div key={n} style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>{n} house:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${(selectedCell as any)[`house${n}Rent`] || 0}</span></div>)}<div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>Hotel:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${selectedCell.hotelRent || 0}</span></div><div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>Skyscraper:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${selectedCell.skyscraperRent || 0}</span></div></div>
+<div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Стройте филиалы, чтобы увеличить ренту.</div>
+<div style={styles.rentBlock}><div style={styles.rentRow}><span style={{color:'#888'}}>Base:</span><span style={{color:'#eee'}}>${selectedCell.baseRent || 0}</span></div>{selectedCell.partialMonopolyRent && <div style={styles.rentRow}><span style={{color:'#888'}}>Partial:</span><span style={{color:'#eee'}}>${selectedCell.partialMonopolyRent}</span></div>}{selectedCell.monopolyRent && <div style={styles.rentRow}><span style={{color:'#888'}}>Monopoly:</span><span style={{color:'#eee'}}>${selectedCell.monopolyRent}</span></div>}</div>
+<div style={styles.rentBlock}>{[1,2,3,4].map(n => <div key={n} style={styles.rentRow}><span style={{color:'#888'}}>{n} house:</span><span style={{color:'#eee'}}>${(selectedCell as any)[`house${n}Rent`] || 0}</span></div>)}<div style={styles.rentRow}><span style={{color:'#888'}}>Hotel:</span><span style={{color:'#eee'}}>${selectedCell.hotelRent || 0}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>Skyscraper:</span><span style={{color:'#eee'}}>${selectedCell.skyscraperRent || 0}</span></div></div>
 </>
 )}
 {selectedCell.type === 'STATION' && (<>
-<div className="btn-hover btn-surrender" style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от кол-ва Ж/Д станций. Депо удваивает ренту.</div>
-<div style={styles.rentBlock}>{[1,2,3,4].map(n => <div key={n} style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>{n} station:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>${(selectedCell as any)[`stationRent${n}`] || 0}</span></div>)}</div>
+<div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от кол-ва Ж/Д станций. Депо удваивает ренту.</div>
+<div style={styles.rentBlock}>{[1,2,3,4].map(n => <div key={n} style={styles.rentRow}><span style={{color:'#888'}}>{n} station:</span><span style={{color:'#eee'}}>${(selectedCell as any)[`stationRent${n}`] || 0}</span></div>)}</div>
 </>)}
 {selectedCell.type === 'UTILITY' && (<>
-<div className="btn-hover btn-surrender" style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от суммы кубиков и кол-ва Коммуналок.</div>
-<div style={styles.rentBlock}><div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>1 utility:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>x{selectedCell.utilityMultiplier1 || 4}</span></div><div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>2 utilities:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>x{selectedCell.utilityMultiplier2 || 10}</span></div><div style={styles.rentRow}><span className="btn-hover btn-surrender" style={{color:'#888'}}>3 utilities:</span><span className="btn-hover btn-surrender" style={{color:'#eee'}}>x{selectedCell.utilityMultiplier3 || 20}</span></div></div>
+<div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от суммы кубиков и кол-ва Коммуналок.</div>
+<div style={styles.rentBlock}><div style={styles.rentRow}><span style={{color:'#888'}}>1 utility:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier1 || 4}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>2 utilities:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier2 || 10}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>3 utilities:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier3 || 20}</span></div></div>
 </>)}
-<div className="btn-hover btn-surrender" style={{marginTop:'auto', padding:6, backgroundColor:'#1a1a1a', borderRadius:4, textAlign:'center', fontSize:11, color:'#888'}}><span>Mortgage: ${Math.floor((selectedCell.price || 0) * 0.5)}</span> | <span>Unmortgage: ${unmortgageCost}</span></div>
-{selectedCell.isMortgaged && (<div className="btn-hover btn-surrender" style={{textAlign:'center', color:'#dc3545', fontSize:12, marginTop:6}}>Заложено на {selectedCell.mortgageTurnsRemaining} ходов</div>)}
+<div style={{marginTop:'auto', padding:6, backgroundColor:'#1a1a1a', borderRadius:4, textAlign:'center', fontSize:11, color:'#888'}}><span>Mortgage: ${Math.floor((selectedCell.price || 0) * 0.5)}</span> | <span>Unmortgage: ${unmortgageCost}</span></div>
+{selectedCell.isMortgaged && (<div style={{textAlign:'center', color:'#dc3545', fontSize:12, marginTop:6}}>Заложено на {selectedCell.mortgageTurnsRemaining} ходов</div>)}
 </div>
 </div>
 )}
 {shouldShowJail && (
 <div style={styles.actionPanel}>
-<div style={styles.actionPanelHeader}><span className="btn-hover btn-surrender" style={{color:'#eee'}}>🔒 Тюрьма (Ход {gameState?.players[gameState.currentPlayerIndex]?.jailTurns || 0}/3)</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
+<div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🔒 Тюрьма (Ход {gameState?.players[gameState.currentPlayerIndex]?.jailTurns || 0}/3)</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
-<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} className="btn-hover btn-surrender" style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
-<button onClick={handleRollDice} disabled={isActionsDisabled} className="btn-hover btn-surrender" style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
+<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
+<button onClick={handleRollDice} disabled={isActionsDisabled} style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
 </div>
 </div>
 )}
 {shouldShowBirthday && (
 <div style={styles.actionPanel}>
-<div style={styles.actionPanelHeader}><span className="btn-hover btn-surrender" style={{color:'#eee'}}>🎁 Подарок на день рождения</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
+<div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🎁 Подарок на день рождения</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
 <button onClick={() => handleChooseBirthdayGift("money")} style={styles.btnSuccess}>Получить $100</button>
-<button onClick={() => handleChooseBirthdayGift("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable} className="btn-hover btn-surrender" style={{...styles.btnAction, backgroundColor: '#28a745', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>Взять билет</button>
+<button onClick={() => handleChooseBirthdayGift("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable} style={{...styles.btnAction, backgroundColor: '#28a745', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>Взять билет</button>
 </div>
 </div>
 )}
 {shouldShowBus && (
 <div style={styles.actionPanel}>
-<div style={styles.actionPanelHeader}><span className="btn-hover btn-surrender" style={{color:'#eee'}}>🚌 Выпал BUS</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
+<div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🚌 Выпал BUS</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
 <button onClick={() => handleChooseBusAction("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable}
-className="btn-hover btn-surrender" style={{...styles.btnAction, backgroundColor: '#17a2b8', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>
+style={{...styles.btnAction, backgroundColor: '#17a2b8', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>
 Взять билет
 </button>
 <button onClick={() => handleChooseBusAction("move")} style={styles.btnSuccess}>Перенестись на Шанс/Сундук</button>
@@ -625,7 +615,7 @@ className="btn-hover btn-surrender" style={{...styles.btnAction, backgroundColor
 {(shouldShowActions || shouldShowForcedBalance) && (
 <div style={styles.actionPanel}>
 <div style={styles.actionPanelHeader}>
-<span className="btn-hover btn-surrender" style={{
+<span style={{
 color: isBalancing ? '#ff6b6b' : '#eee',
 fontWeight: isBalancing ? 700 : 400
 }}>
@@ -636,7 +626,7 @@ fontWeight: isBalancing ? 700 : 400
 {gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}
 </div>
 {isBalancing && (
-<div className="btn-hover btn-surrender" style={{
+<div style={{
 color: '#ffcc00',
 fontSize: 13,
 marginBottom: 10,
@@ -653,32 +643,22 @@ lineHeight: 1.45
 <button
 onClick={handleRollDice}
 disabled={isActionsDisabled || isBalancing}
-className="btn-hover"
-className="btn-hover btn-surrender" style={{
+style={{
 ...styles.btnAction,
-backgroundColor: '#e8690a',
-opacity: (isActionsDisabled || isBalancing) ? 0.42 : 1,
-cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer',
-animation: (!isActionsDisabled && !isBalancing && isMyTurn)
-? 'rollGlow 2s ease-in-out infinite'
-: 'none',
-'--glow-color': currentPlayerColor,
-} as any}
+backgroundColor: '#fd7e14',
+opacity: (isActionsDisabled || isBalancing) ? 0.5 : 1,
+cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer'
+}}
 >
-🎲 Бросить кубики
+Roll
 </button>
 {hasTickets && !isBalancing && (
 <button
 onClick={handleUseTicket}
 disabled={isActionsDisabled}
-className="btn-hover btn-ticket"
-className="btn-hover btn-surrender" style={{
-...styles.btnAction,
-backgroundColor: '#0f7485',
-opacity: isActionsDisabled ? 0.42 : 1,
-}}
+style={{ ...styles.btnAction, backgroundColor: '#28a745', opacity: isActionsDisabled ? 0.5 : 1 }}
 >
-🎫 Использовать билет
+Use Ticket
 </button>
 )}
 </div>
@@ -686,34 +666,34 @@ opacity: isActionsDisabled ? 0.42 : 1,
 )}
 {shouldShowPostMove && (
 <div style={styles.actionPanel}>
-<div style={styles.actionPanelHeader}><span className="btn-hover btn-surrender" style={{color:'#eee'}}>Turn - Post-move</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
-<div className="btn-hover btn-surrender" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+<div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>Turn - Post-move</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 {gameState.activeAction?.type === "BUY" && (
 <div style={styles.actionPanelContent}>
-<span className="btn-hover btn-surrender" style={{color:'#eee'}}>Купить за ${currentCell?.price}?</span>
-<button onClick={handleBuyProperty} disabled={!canAffordBuy} className="btn-hover btn-buy" className="btn-hover btn-surrender" style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
+<span style={{color:'#eee'}}>Купить за ${currentCell?.price}?</span>
+<button onClick={handleBuyProperty} disabled={!canAffordBuy} style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
 <button onClick={handleSkipAction} style={styles.btnSecondary}>Отказаться</button>
 </div>
 )}
 {gameState.activeAction?.type === "PAY" && (
-<div className="btn-hover btn-surrender" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 {cannotAffordEvenWithAssets && (
-<div className="btn-hover btn-surrender" style={{ color: '#dc3545', fontSize: 12, padding: '6px 10px', backgroundColor: 'rgba(220,53,69,0.12)', borderRadius: 6, border: '1px solid rgba(220,53,69,0.3)', lineHeight: 1.4 }}>
+<div style={{ color: '#dc3545', fontSize: 12, padding: '6px 10px', backgroundColor: 'rgba(220,53,69,0.12)', borderRadius: 6, border: '1px solid rgba(220,53,69,0.3)', lineHeight: 1.4 }}>
 ⚠️ Вы не сможете погасить долг, даже если заложите всё имущество
 </div>
 )}
 {!canAffordPay && !cannotAffordEvenWithAssets && (
-<div className="btn-hover btn-surrender" style={{ color: '#ffcc00', fontSize: 12, padding: '6px 10px', backgroundColor: 'rgba(255,204,0,0.1)', borderRadius: 6, border: '1px solid rgba(255,204,0,0.3)', lineHeight: 1.4 }}>
+<div style={{ color: '#ffcc00', fontSize: 12, padding: '6px 10px', backgroundColor: 'rgba(255,204,0,0.1)', borderRadius: 6, border: '1px solid rgba(255,204,0,0.3)', lineHeight: 1.4 }}>
 💰 Продайте или заложите имущество, чтобы набрать ${debtAmount}
 </div>
 )}
 <div style={styles.actionPanelContent}>
-<span className="btn-hover btn-surrender" style={{color:'#eee'}}>Долг: ${debtAmount}</span>
-<button onClick={handlePayDebt} disabled={!canAffordPay} className="btn-hover btn-pay" className="btn-hover btn-surrender" style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
+<span style={{color:'#eee'}}>Долг: ${debtAmount}</span>
+<button onClick={handlePayDebt} disabled={!canAffordPay} style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
 <button
 onClick={handleSurrender}
 disabled={canAffordPay}
-className="btn-hover btn-surrender" style={{
+style={{
 ...styles.btnSecondary,
 color: !canAffordPay ? (cannotAffordEvenWithAssets ? '#ff4444' : '#ff6b6b') : '#555',
 border: !canAffordPay ? `1px solid ${cannotAffordEvenWithAssets ? '#ff4444' : '#ff6b6b'}` : '1px solid #444',
@@ -731,17 +711,17 @@ cursor: canAffordPay ? 'not-allowed' : 'pointer'
 </div>
 )}
 {isTripleChoice && isMyTurn && !activeContract && (
-<div className="btn-hover btn-surrender" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#ff0', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(255, 220, 0, 0.6)', textShadow: '0 0 15px #ff0', zIndex: 40, pointerEvents: 'none' }}>ТРОЙНОЙ ДУБЛЬ!<br />Выберите любую клетку</div>
+<div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#ff0', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(255, 220, 0, 0.6)', textShadow: '0 0 15px #ff0', zIndex: 40, pointerEvents: 'none' }}>ТРОЙНОЙ ДУБЛЬ!<br />Выберите любую клетку</div>
 )}
 {isChooseAuction && isMyTurn && !activeContract && (
-<div className="btn-hover btn-surrender" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#00d4ff', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)', textShadow: '0 0 15px #00d4ff', zIndex: 40, pointerEvents: 'none' }}>ВЫБЕРИТЕ СОБСТВЕННОСТЬ ДЛЯ АУКЦИОНА</div>
+<div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#00d4ff', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)', textShadow: '0 0 15px #00d4ff', zIndex: 40, pointerEvents: 'none' }}>ВЫБЕРИТЕ СОБСТВЕННОСТЬ ДЛЯ АУКЦИОНА</div>
 )}
 {!activeContract && !isTripleChoice && !isChooseAuction && !selectedCell && !shouldShowJail && !shouldShowBirthday && !shouldShowBus && (
-<div style={styles.chatMessages}>{messages.map(m => <div key={m.id} className="btn-hover btn-surrender" style={{ fontSize: 12, color: m.isSystem ? '#888' : '#eee' }}>{m.text}</div>)}<div ref={chatEndRef} /></div>
+<div style={styles.chatMessages}>{messages.map(m => <div key={m.id} style={{ fontSize: 12, color: m.isSystem ? '#888' : '#eee' }}>{m.text}</div>)}<div ref={chatEndRef} /></div>
 )}
 </div>
 </div>
-<div className="btn-hover btn-surrender" style={{ ...styles.sideColumn, ...(isTripleChoice || isChooseAuction ? { filter: 'brightness(0.65) saturate(0.7)' } : {}) }}>
+<div style={{ ...styles.sideColumn, ...(isTripleChoice || isChooseAuction ? { filter: 'brightness(0.65) saturate(0.7)' } : {}) }}>
 {[4,5,6,7].map(i => {
 const p = players[i] || null;
 const ic = !!p && gameState?.players[gameState?.currentPlayerIndex]?.userId === p.userId;
@@ -754,7 +734,7 @@ return <PlayerCard key={p ? p.userId : `er${i}`} player={p} index={i} gameState=
 )}
 </div>
 {auctionState && (
-<div className="btn-hover btn-surrender" style={{
+<div style={{
 position: 'fixed',
 top: 0, left: 0, right: 0, bottom: 0,
 backgroundColor: 'rgba(0,0,0,0.85)',
@@ -763,31 +743,31 @@ zIndex: 99999, borderRadius: 0, pointerEvents: 'auto'
 }}>
 <div style={styles.auctionModal}>
 <div style={styles.auctionHeader}>
-<span className="btn-hover btn-surrender" style={{color:'#eee'}}>🔨 Аукцион</span>
-<span className="btn-hover btn-surrender" style={{ color: auctionTimer <= 3 ? '#dc3545' : '#999', fontWeight: 'bold' }}>{auctionTimer}s</span>
+<span style={{color:'#eee'}}>🔨 Аукцион</span>
+<span style={{ color: auctionTimer <= 3 ? '#dc3545' : '#999', fontWeight: 'bold' }}>{auctionTimer}s</span>
 </div>
 <div style={styles.auctionInfo}>
 <div style={styles.auctionProp}>{board[auctionState.cellPosition]?.name}</div>
-<div style={styles.auctionPrice}>Текущая ставка: <strong className="btn-hover btn-surrender" style={{color:'#28a745'}}>${auctionState.currentBid}</strong></div>
-<div style={styles.auctionTurn}>Ход: <span className="btn-hover btn-surrender" style={{color:'#fd7e14'}}>{players.find(p=>p.userId===auctionState.currentBidderId)?.displayName || '...'}</span></div>
+<div style={styles.auctionPrice}>Текущая ставка: <strong style={{color:'#28a745'}}>${auctionState.currentBid}</strong></div>
+<div style={styles.auctionTurn}>Ход: <span style={{color:'#fd7e14'}}>{players.find(p=>p.userId===auctionState.currentBidderId)?.displayName || '...'}</span></div>
 </div>
 {auctionState.currentBidderId === myProfile?.id ? (
 <div style={styles.auctionActions}>
 <button onClick={() => socket?.emit("auction_bid")} disabled={!canBid}
-className="btn-hover btn-buy" className="btn-hover btn-surrender" style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
-<button onClick={() => socket?.emit("auction_drop")} className="btn-hover" className="btn-hover btn-surrender" style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
+className="btn-hover btn-buy" style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
+<button onClick={() => socket?.emit("auction_drop")} className="btn-hover" style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
 </div>
 ) : (
-<div className="btn-hover btn-surrender" style={{textAlign:'center', color:'#888', fontSize:13, padding:12}}>Ожидание хода...</div>
+<div style={{textAlign:'center', color:'#888', fontSize:13, padding:12}}>Ожидание хода...</div>
 )}
 </div>
 </div>
 )}
 {isEditModalOpen && myProfile && (
-<div style={styles.modalOverlay}><div style={styles.modal}><h2 className="btn-hover btn-surrender" style={{ marginTop: 0, marginBottom: 16, color:'#eee' }}>{myProfile.displayName}</h2><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}><img src={myProfile.avatarUrl} alt="" className="btn-hover btn-surrender" style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #0071e3', objectFit: 'cover' }} /></div><div className="btn-hover btn-surrender" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: '#2a2a2a', borderRadius: 10 }}><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Games:</span><strong>{myProfile.gamesPlayed}</strong></div><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Wins:</span><strong>{myProfile.wins}</strong></div><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Rate:</span><strong>{myProfile.gamesPlayed > 0 ? Math.round((myProfile.wins / myProfile.gamesPlayed) * 100) : 0}%</strong></div></div><div className="btn-hover btn-surrender" style={{ marginBottom: 20 }}><div style={styles.formGroup}><label className="btn-hover btn-surrender" style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>Name</label><input value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} style={styles.input} /></div><div style={styles.formGroup}><label className="btn-hover btn-surrender" style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>Avatar</label><input value={editAvatarUrl} onChange={e => setEditAvatarUrl(e.target.value)} style={styles.input} /></div></div><div style={styles.buttonGroup}><button onClick={handleSaveProfile} className="btn-hover btn-surrender" style={{ ...styles.btnPrimary, flex: 1 }}>Save</button><button onClick={() => setIsEditModalOpen(false)} className="btn-hover btn-surrender" style={{ ...styles.btnSecondary, flex: 1 }}>Cancel</button></div></div></div>
+<div style={styles.modalOverlay}><div style={styles.modal}><h2 style={{ marginTop: 0, marginBottom: 16, color:'#eee' }}>{myProfile.displayName}</h2><div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}><img src={myProfile.avatarUrl} alt="" style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #0071e3', objectFit: 'cover' }} /></div><div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: '#2a2a2a', borderRadius: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Games:</span><strong>{myProfile.gamesPlayed}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Wins:</span><strong>{myProfile.wins}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Rate:</span><strong>{myProfile.gamesPlayed > 0 ? Math.round((myProfile.wins / myProfile.gamesPlayed) * 100) : 0}%</strong></div></div><div style={{ marginBottom: 20 }}><div style={styles.formGroup}><label style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>Name</label><input value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} style={styles.input} /></div><div style={styles.formGroup}><label style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>Avatar</label><input value={editAvatarUrl} onChange={e => setEditAvatarUrl(e.target.value)} style={styles.input} /></div></div><div style={styles.buttonGroup}><button onClick={handleSaveProfile} style={{ ...styles.btnPrimary, flex: 1 }}>Save</button><button onClick={() => setIsEditModalOpen(false)} style={{ ...styles.btnSecondary, flex: 1 }}>Cancel</button></div></div></div>
 )}
 {viewProfileModalOpen && viewingProfile && (
-<div style={styles.modalOverlay} onClick={() => setViewProfileModalOpen(false)}><div style={styles.modal} onClick={e => e.stopPropagation()}><h2 className="btn-hover btn-surrender" style={{ marginTop: 0, marginBottom: 16, color:'#eee' }}>{viewingProfile.displayName}</h2><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}><img src={viewingProfile.avatarUrl} alt="" className="btn-hover btn-surrender" style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #0071e3', objectFit: 'cover' }} /></div><div className="btn-hover btn-surrender" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: '#2a2a2a', borderRadius: 10 }}><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Games:</span><strong>{viewingProfile.gamesPlayed}</strong></div><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Wins:</span><strong>{viewingProfile.wins}</strong></div><div className="btn-hover btn-surrender" style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Rate:</span><strong>{viewingProfile.gamesPlayed > 0 ? Math.round((viewingProfile.wins / viewingProfile.gamesPlayed) * 100) : 0}%</strong></div></div><button onClick={() => setViewProfileModalOpen(false)} className="btn-hover btn-surrender" style={{ ...styles.btnSecondary, width: '100%' }}>Close</button></div></div>
+<div style={styles.modalOverlay} onClick={() => setViewProfileModalOpen(false)}><div style={styles.modal} onClick={e => e.stopPropagation()}><h2 style={{ marginTop: 0, marginBottom: 16, color:'#eee' }}>{viewingProfile.displayName}</h2><div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}><img src={viewingProfile.avatarUrl} alt="" style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #0071e3', objectFit: 'cover' }} /></div><div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: '#2a2a2a', borderRadius: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Games:</span><strong>{viewingProfile.gamesPlayed}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Wins:</span><strong>{viewingProfile.wins}</strong></div><div style={{ display: 'flex', justifyContent: 'space-between', color:'#ccc' }}><span>Rate:</span><strong>{viewingProfile.gamesPlayed > 0 ? Math.round((viewingProfile.wins / viewingProfile.gamesPlayed) * 100) : 0}%</strong></div></div><button onClick={() => setViewProfileModalOpen(false)} style={{ ...styles.btnSecondary, width: '100%' }}>Close</button></div></div>
 )}
 {winData && (
 <WinScreen
