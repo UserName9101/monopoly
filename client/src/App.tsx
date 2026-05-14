@@ -754,8 +754,8 @@ zIndex: 99999, borderRadius: 0, pointerEvents: 'auto'
 {auctionState.currentBidderId === myProfile?.id ? (
 <div style={styles.auctionActions}>
 <button onClick={() => socket?.emit("auction_bid")} disabled={!canBid}
-style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
-<button onClick={() => socket?.emit("auction_drop")} style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
+className="btn-hover btn-buy" style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
+<button onClick={() => socket?.emit("auction_drop")} className="btn-hover" style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
 </div>
 ) : (
 <div style={{textAlign:'center', color:'#888', fontSize:13, padding:12}}>Ожидание хода...</div>

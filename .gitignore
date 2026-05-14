@@ -1,23 +1,33 @@
 ```gitignore
 # Dependencies
 node_modules/
-server/node_modules/
 
-# Environment
+# Build outputs
+dist/
+build/
+*.js.map
+*.ts.map
+
+# Environment variables
 .env
 .env.local
-.env.*
+*.env.*
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Editors
+# IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Python specific
+# Logs
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
