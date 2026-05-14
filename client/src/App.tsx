@@ -12,7 +12,7 @@ ContractProposal, RoomPayload, RoomSummary, ChatMessage, AuctionState
 import TimerDisplay from "./components/TimerDisplay";
 import PlayerCard from "./components/PlayerCard";
 import { getValidTicketTargets, validateBuild, validateSell, validateMortgage, validateUnmortgage, calculateTotalCapital } from "./utils/boardLogic";
-import { styles, GLOBAL_STYLES } from "./styles";
+import { styles } from "./styles";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -73,7 +73,6 @@ return `⚠️ Выровняйте количество домов в набо�
 }, [balanceGroupId, board, myProfile]);
 
 useEffect(() => { document.documentElement.style.margin = "0"; document.documentElement.style.padding = "0"; document.documentElement.style.overflow = "hidden"; document.body.style.margin = "0"; document.body.style.padding = "0"; document.body.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; document.body.style.overflow = ""; }; }, []);
-useEffect(() => { const style = document.createElement('style'); style.textContent = GLOBAL_STYLES; document.head.appendChild(style); return () => document.head.removeChild(style); }, []);
 useEffect(() => { const calculateScale = () => { if (!gameCanvasRef.current) return; setScale(Math.min(gameCanvasRef.current.clientWidth / IDEAL_FULL_WIDTH, gameCanvasRef.current.clientHeight / IDEAL_FULL_HEIGHT, 1.1)); }; window.addEventListener("resize", calculateScale); const t = setTimeout(calculateScale, 50); return () => { window.removeEventListener("resize", calculateScale); clearTimeout(t); }; }, []);
 useEffect(() => { if (!token) { setSocket(null); return; } const s = io(API, { auth: { token } }); setSocket(s); s.on("connect_error", (e) => { if (e.message === "Invalid token") handleLogout(); }); return () => s.disconnect(); }, [token]);
 useEffect(() => { if (token) { fetchMyProfile(); fetchRooms(); } }, [token]);
@@ -94,8 +93,6 @@ const isHost = socketId && hostId && socketId === hostId;
 const isGameStarted = roomStatus === "PLAYING";
 const isInRoom = roomId !== "";
 const isMyTurn = gameState && myProfile ? gameState.players[gameState.currentPlayerIndex]?.userId === myProfile.id : false;
-const currentPlayerIdx = gameState ? gameState.currentPlayerIndex : 0;
-const currentPlayerColor = PLAYER_COLORS[currentPlayerIdx % PLAYER_COLORS.length];
 const isTripleChoice = gameState?.activeAction?.type === "TRIPLE_CHOICE";
 const isChooseAuction = gameState?.activeAction?.type === "CHOOSE_AUCTION";
 const isChooseBirthday = gameState?.activeAction?.type === "CHOOSE_BIRTHDAY";
@@ -589,8 +586,8 @@ return (
 <div style={styles.actionPanel}>
 <div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🔒 Тюрьма (Ход {gameState?.players[gameState.currentPlayerIndex]?.jailTurns || 0}/3)</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
-<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} className="btn-hover btn-pay" style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
-<button onClick={handleRollDice} disabled={isActionsDisabled} className="btn-hover" style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
+<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
+<button onClick={handleRollDice} disabled={isActionsDisabled} style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
 </div>
 </div>
 )}
@@ -646,30 +643,22 @@ lineHeight: 1.45
 <button
 onClick={handleRollDice}
 disabled={isActionsDisabled || isBalancing}
-className="btn-hover"
 style={{
 ...styles.btnAction,
-backgroundColor: '#e8690a',
-opacity: (isActionsDisabled || isBalancing) ? 0.42 : 1,
-cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer',
-animation: (!isActionsDisabled && !isBalancing && isMyTurn) ? 'rollGlow 2s ease-in-out infinite' : 'none',
-'--glow-color': currentPlayerColor,
-} as any}
+backgroundColor: '#fd7e14',
+opacity: (isActionsDisabled || isBalancing) ? 0.5 : 1,
+cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer'
+}}
 >
-🎲 Бросить кубики
+Roll
 </button>
 {hasTickets && !isBalancing && (
 <button
 onClick={handleUseTicket}
 disabled={isActionsDisabled}
-className="btn-hover btn-ticket"
-style={{
-...styles.btnAction,
-backgroundColor: '#0f7485',
-opacity: isActionsDisabled ? 0.42 : 1,
-}}
+style={{ ...styles.btnAction, backgroundColor: '#28a745', opacity: isActionsDisabled ? 0.5 : 1 }}
 >
-🎫 Использовать билет
+Use Ticket
 </button>
 )}
 </div>
@@ -682,7 +671,7 @@ opacity: isActionsDisabled ? 0.42 : 1,
 {gameState.activeAction?.type === "BUY" && (
 <div style={styles.actionPanelContent}>
 <span style={{color:'#eee'}}>Купить за ${currentCell?.price}?</span>
-<button onClick={handleBuyProperty} disabled={!canAffordBuy} className="btn-hover btn-buy" style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
+<button onClick={handleBuyProperty} disabled={!canAffordBuy} style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
 <button onClick={handleSkipAction} style={styles.btnSecondary}>Отказаться</button>
 </div>
 )}
@@ -700,11 +689,10 @@ opacity: isActionsDisabled ? 0.42 : 1,
 )}
 <div style={styles.actionPanelContent}>
 <span style={{color:'#eee'}}>Долг: ${debtAmount}</span>
-<button onClick={handlePayDebt} disabled={!canAffordPay} className="btn-hover btn-pay" style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
+<button onClick={handlePayDebt} disabled={!canAffordPay} style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
 <button
 onClick={handleSurrender}
 disabled={canAffordPay}
-className="btn-hover btn-surrender"
 style={{
 ...styles.btnSecondary,
 color: !canAffordPay ? (cannotAffordEvenWithAssets ? '#ff4444' : '#ff6b6b') : '#555',

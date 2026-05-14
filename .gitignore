@@ -33,15 +33,13 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Temporary files
-*.tmp
-*.temp
+# Build outputs
+dist/
+build/
+target/
+*.out
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Compression files
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -64,4 +62,8 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# System files
+.DS_Store
+Thumbs.db
 ```
