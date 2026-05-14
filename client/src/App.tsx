@@ -660,6 +660,7 @@ style={{
 backgroundColor: '#e8690a',
 opacity: (isActionsDisabled || isBalancing) ? 0.42 : 1,
 cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer',
+animation: (!isActionsDisabled && !isBalancing && isMyTurn) ? 'rollGlow 2s ease-in-out infinite' : 'none',
 '--glow-color': currentPlayerColor,
 } as any}
 >
@@ -772,17 +773,9 @@ zIndex: 99999, borderRadius: 0, pointerEvents: 'auto'
 </div>
 {auctionState.currentBidderId === myProfile?.id ? (
 <div style={styles.auctionActions}>
-<button 
-  className="btn-hover"
-  onClick={() => socket?.emit("auction_bid")} 
-  disabled={!canBid}
-  style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}
->+10</button>
-<button 
-  className="btn-hover"
-  onClick={() => socket?.emit("auction_drop")} 
-  style={{...styles.btnSecondary, flex:1, color:'#dc3545', cursor: 'pointer'}}
->Отказаться</button>
+<button onClick={() => socket?.emit("auction_bid")} disabled={!canBid}
+style={{...styles.btnSuccess, flex:1, opacity: canBid ? 1 : 0.5, cursor: canBid ? 'pointer' : 'not-allowed'}}>+10</button>
+<button onClick={() => socket?.emit("auction_drop")} style={{...styles.btnSecondary, flex:1, color:'#dc3545'}}>Отказаться</button>
 </div>
 ) : (
 <div style={{textAlign:'center', color:'#888', fontSize:13, padding:12}}>Ожидание хода...</div>

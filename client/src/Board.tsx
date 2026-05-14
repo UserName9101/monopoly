@@ -28,17 +28,17 @@ function StarIcon({ size, color, glow }: { size: number; color: string; glow?: s
 function BuildingIndicator({ houses, hasDepot, cellIndex }: { houses?: number; hasDepot?: boolean; cellIndex: number }) {
   const h = houses || 0;
   if (hasDepot) {
-    // Депо = как отель, золотая звезда (увеличенный размер)
-    return <StarIcon size={16} color="#FFD700" glow="#FFD700" />;
+    // Депо = как отель, золотая звезда
+    return <StarIcon size={11} color="#FFD700" glow="#FFD700" />;
   }
   if (h === 0) return null;
-  if (h >= 6) return <StarIcon size={22} color="#9B30FF" glow="#9B30FF" />;
-  if (h === 5) return <StarIcon size={16} color="#FFD700" glow="#FFD700" />;
-  // 1-4 дома — серые звёзды побольше
+  if (h >= 6) return <StarIcon size={17} color="#9B30FF" glow="#9B30FF" />;
+  if (h === 5) return <StarIcon size={11} color="#FFD700" glow="#FFD700" />;
+  // 1-4 дома — серые маленькие звёзды
   return (
-    <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 1, alignItems: "center" }}>
       {Array.from({ length: h }).map((_, i) => (
-        <StarIcon key={i} size={10} color="#888" />
+        <StarIcon key={i} size={6} color="#888" />
       ))}
     </div>
   );
@@ -96,17 +96,17 @@ function getStripStyle(index: number, color: string): React.CSSProperties {
   return { ...base, right: 0, top: 0, bottom: 0, width: STRIP_SIZE };
 }
 
-// Грань, смотрящая внутрь поля — туда кладём постройки (звёзды прямо на ребре, делятся пополам)
+// Грань, смотрящая внутрь поля — туда кладём постройки
 function getInnerEdgeStyle(index: number): React.CSSProperties {
-  const base: React.CSSProperties = { position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", gap: 2, zIndex: 3 };
-  // Верхняя сторона (1-12): внутренний край - низ клетки, звёзды горизонтальным списком сверху ребра
-  if (index >= 1 && index <= 12) return { ...base, bottom: -6, left: 0, right: 0, height: 18 };
-  // Правая сторона (14-25): внутренний край - лево клетки, звёзды вертикальным списком справа от ребра
-  if (index >= 14 && index <= 25) return { ...base, left: -6, top: 0, bottom: 0, width: 18, flexDirection: "column" };
-  // Нижняя сторона (27-38): внутренний край - верх клетки, звёзды горизонтальным списком снизу ребра
-  if (index >= 27 && index <= 38) return { ...base, top: -6, left: 0, right: 0, height: 18 };
-  // Левая сторона (40-51): внутренний край - право клетки, звёзды вертикальным списком слева от ребра
-  return { ...base, right: -6, top: 0, bottom: 0, width: 18, flexDirection: "column" };
+  const base: React.CSSProperties = { position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", gap: 1, zIndex: 3 };
+  // Верхняя сторона (1-12): внутренний край - низ клетки
+  if (index >= 1 && index <= 12) return { ...base, bottom: 0, left: 0, right: 0, height: 14 };
+  // Правая сторона (14-25): внутренний край - лево клетки
+  if (index >= 14 && index <= 25) return { ...base, left: 0, top: 0, bottom: 0, width: 14, flexDirection: "column" };
+  // Нижняя сторона (27-38): внутренний край - верх клетки
+  if (index >= 27 && index <= 38) return { ...base, top: 0, left: 0, right: 0, height: 14 };
+  // Левая сторона (40-51): внутренний край - право клетки
+  return { ...base, right: 0, top: 0, bottom: 0, width: 14, flexDirection: "column" };
 }
 
 // Текст полоски: горизонтальный для верх/низ, повёрнутый для левой/правой стороны
@@ -235,10 +235,10 @@ export default function Board({ board, players, gameState, onCellClick, onCellRi
           ? (i >= 1 && i <= 12 ? `2px 2px ${stripPad}px` : i >= 14 && i <= 25 ? `2px ${stripPad}px 2px 2px` : i >= 27 && i <= 38 ? `${stripPad}px 2px 2px 2px` : `2px 2px 2px ${stripPad}px`)
           : "2px";
 
-        // Фон: белый + градиент владельца в тонах цвета игрока (из цвета в цвет, 100% непрозрачности)
+        // Фон: белый + градиент владельца в тонах цвета игрока (из цвета в цвет)
         const bgColor = isOffered ? '#FFF8DC' : isRequested ? '#E6F3FF' : '#f8f8f8';
         const bgGradient = ownerColor && !isOffered && !isRequested
-          ? `linear-gradient(135deg, ${ownerColor} 0%, ${ownerColor}cc 100%)`
+          ? `linear-gradient(135deg, ${ownerColor}40 0%, ${ownerColor}20 50%, transparent 100%)`
           : 'none';
 
         return (
@@ -361,22 +361,13 @@ export default function Board({ board, players, gameState, onCellClick, onCellRi
         const offsetY = total > 2 && myIdxInCell >= 2 ? 12 : 0;
 
         return (
-          <div
+          <PlayerToken
             key={`token-${player.userId}`}
-            style={{
-              position: "absolute",
-              left: center.x + offsetX - 7,
-              top: center.y + offsetY - 7,
-              zIndex: 10,
-            }}
-          >
-            <PieceToken
-              pieceId={pieceId}
-              color={color}
-              size={14}
-              label={player.displayName || player.userId}
-            />
-          </div>
+            pieceId={pieceId}
+            color={color}
+            x={center.x + offsetX}
+            y={center.y + offsetY}
+          />
         );
       })}
     </div>
