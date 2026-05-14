@@ -533,39 +533,10 @@ if (c.inJail) {
 const d1 = rollDie();
 const d2 = rollDie();
 const isDoubles = d1 === d2;
+// Сохраняем результат броска во временное состояние для тюрьмы
+gs.pendingDice = { white1: d1, white2: d2, speed: 0, jailRoll: true, jailIsDoubles: isDoubles };
 io.to(r.id).emit("dice_rolled", { result: `${d1}:${d2}`, white1: d1, white2: d2, speed: 0 });
-if (isDoubles) {
-c.inJail = false; c.jailTurns = 0;
-const dist = d1 + d2;
-const res = r.engine.calculateMove(c.position, dist);
-c.position = res.newPosition; c.money += res.moneyChange;
-gs.thisRollWasDoubles = false;
-if (checkBankruptcy(c)) { handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY"); return; }
-startPhaseTimer(r.id, "POST_MOVE");
-} else {
-c.jailTurns = (c.jailTurns || 0) + 1;
-const pName = r.players.find(p => p.userId === c.userId)?.displayName || 'Игрок';
-io.to(r.id).emit("game_log", { text: `${pName} не выбросил дубль. Остаётся в тюрьме (ход ${c.jailTurns}/3).`, isSystem: true });
-if (c.jailTurns >= 3) {
-if (c.money >= 50) {
-c.money -= 50;
-io.to(r.id).emit("game_log", { text: `${pName} принудительно платит $50 за тюрьму.`, isSystem: true });
-const dist = d1 + d2;
-const res = r.engine.calculateMove(c.position, dist);
-c.position = res.newPosition; c.money += res.moneyChange;
-c.inJail = false; c.jailTurns = 0;
-gs.thisRollWasDoubles = false;
-if (checkBankruptcy(c)) { handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY"); return; }
-startPhaseTimer(r.id, "POST_MOVE");
-} else {
-handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY");
-}
-} else {
-nextTurn(r.id);
-}
-}
-io.to(r.id).emit("state_update", r.gameState);
-io.to(r.id).emit("room_updated", getSafeRoom(r));
+// Не двигаем фишку сразу - ждём confirm_move от клиента после завершения анимации
 return;
 }
 
@@ -594,6 +565,48 @@ if (!gs.pendingDice) return;
 
 const dice = gs.pendingDice;
 delete gs.pendingDice;
+
+// Обработка броска в тюрьме
+if (dice.jailRoll) {
+const isDoubles = dice.jailIsDoubles;
+if (isDoubles) {
+c.inJail = false; c.jailTurns = 0;
+const dist = dice.white1 + dice.white2;
+const res = r.engine.calculateMove(c.position, dist);
+c.position = res.newPosition; c.money += res.moneyChange;
+gs.thisRollWasDoubles = false;
+if (checkBankruptcy(c)) { handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY"); return; }
+startPhaseTimer(r.id, "POST_MOVE");
+} else {
+c.jailTurns = (c.jailTurns || 0) + 1;
+const pName = r.players.find(p => p.userId === c.userId)?.displayName || 'Игрок';
+io.to(r.id).emit("game_log", { text: `${pName} не выбросил дубль. Остаётся в тюрьме (ход ${c.jailTurns}/3).`, isSystem: true });
+if (c.jailTurns >= 3) {
+if (c.money >= 50) {
+c.money -= 50;
+io.to(r.id).emit("game_log", { text: `${pName} принудительно платит $50 за тюрьму.`, isSystem: true });
+const dist = dice.white1 + dice.white2;
+const res = r.engine.calculateMove(c.position, dist);
+c.position = res.newPosition; c.money += res.moneyChange;
+c.inJail = false; c.jailTurns = 0;
+gs.thisRollWasDoubles = false;
+if (checkBankruptcy(c)) { handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY"); return; }
+startPhaseTimer(r.id, "POST_MOVE");
+} else {
+handleBankruptcy(r.id, c.userId, "UNABLE_TO_PAY");
+return;
+}
+} else {
+nextTurn(r.id);
+io.to(r.id).emit("state_update", r.gameState);
+io.to(r.id).emit("room_updated", getSafeRoom(r));
+return;
+}
+}
+io.to(r.id).emit("state_update", r.gameState);
+io.to(r.id).emit("room_updated", getSafeRoom(r));
+return;
+}
 
 const isDoubles = dice.white1 === dice.white2;
 const isTriple = typeof dice.speed === "number" && isDoubles && dice.white1 === dice.speed;
