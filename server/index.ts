@@ -278,7 +278,7 @@ function applyPendingSecondMove(roomId: string) {
   endCurrentPlayerTurn(roomId);
 }
 
-export function startPhaseTimer(roomId: string, phase: RoomPhase) {
+function startPhaseTimer(roomId: string, phase: RoomPhase) {
 const room = rooms.get(roomId);
 if (!room || room.status !== "PLAYING") return;
 if (room.turnTimer) clearTimeout(room.turnTimer);
