@@ -1,59 +1,70 @@
 ```gitignore
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
+# Dependencies
+node_modules/
+
+# Build outputs
 dist/
 build/
 target/
 
-# Dependencies
-node_modules/
-venv/
-.venv/
-.env
-.env.local
-*.env.*
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Editors
-.vscode/
-.idea/
-
-# Python specific
-*.pyc
+# Python
 __pycache__/
+*.pyc
 *.pyo
 *.pyd
 .Python
-*.so
-
-# Testing
-.coverage
-htmlcov/
-.coverage.*
-.nyc_output/
-istanbul/
-.mypy_cache/
+env/
+venv/
+.venv/
+.ENV
 .pytest_cache/
-.hypothesis/
+.mypy_cache/
 
-# OS generated files
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
 .DS_Store
 Thumbs.db
-ehthumbs.db
-Icon?
-```
 
-Wait, let me reconsider. The only modified file is `client/src/Board.tsx`, which is a TypeScript React component file. This is a source code file, not a build artifact or temporary file. There are no build artifacts, dependencies, or temp files in the changes list.
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-Since the changes only involve source code files, the optimized .gitignore should be empty.
-
-```gitignore
-
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
