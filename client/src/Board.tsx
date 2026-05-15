@@ -58,6 +58,34 @@ if (index >= 27 && index <= 38) return { position: "absolute", bottom: 0, left: 
 return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color };
 }
 
+function getInnerEdgeStyle(index: number): React.CSSProperties {
+  // Ребро смотрящее ВНУТРЬ поля — противоположно полоске группы
+  // Верхняя сторона (1–12): полоска top, внутрь = bottom
+  if (index >= 1 && index <= 12) return {
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 10,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    gap: 1, zIndex: 5, pointerEvents: "none",
+  };
+  // Правая сторона (14–25): полоска right, внутрь = left
+  if (index >= 14 && index <= 25) return {
+    position: "absolute", left: 0, top: 0, bottom: 0, width: 10,
+    display: "flex", flexDirection: "column", alignItems: "center",
+    justifyContent: "center", gap: 1, zIndex: 5, pointerEvents: "none",
+  };
+  // Нижняя сторона (27–38): полоска bottom, внутрь = top
+  if (index >= 27 && index <= 38) return {
+    position: "absolute", top: 0, left: 0, right: 0, height: 10,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    gap: 1, zIndex: 5, pointerEvents: "none",
+  };
+  // Левая сторона (40–51): полоска left, внутрь = right
+  return {
+    position: "absolute", right: 0, top: 0, bottom: 0, width: 10,
+    display: "flex", flexDirection: "column", alignItems: "center",
+    justifyContent: "center", gap: 1, zIndex: 5, pointerEvents: "none",
+  };
+}
+
 const getGroupColor = (group?: string) => {
 switch(group) {
 case 'a': return '#8B4513'; case 'b': return '#87CEEB'; case 'c': return '#FF69B4'; case 'd': return '#FFA500';
@@ -109,17 +137,40 @@ return `x${mult}`;
 return '';
 }
 
-function getCellIndicators(houses?: number, hasDepot?: boolean, isMortgaged?: boolean, mortgageTurns?: number): { building: string; mortgage: string } {
-if (isMortgaged) return { building: '', mortgage: mortgageTurns !== undefined ? `🔒 ${mortgageTurns} ходов` : '🔒' };
-if (hasDepot) return { building: '🚉', mortgage: '' };
-if (!houses || houses === 0) return { building: '', mortgage: '' };
-if (houses <= 4) return { building: '🏠'.repeat(houses), mortgage: '' };
-if (houses === 5) return { building: '🏨', mortgage: '' };
-return { building: '🏙️', mortgage: '' };
+const STAR = "M12 2l2.09 6.26h6.63l-5.45 3.87 2.09 6.26L12 14.5l-5.36 3.89 2.09-6.26L3.28 8.26h6.63z";
+
+function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boolean }) {
+  const h = houses || 0;
+
+  if (h === 0 && !hasDepot) return null;
+
+  // Небоскрёб — одна крупная аметистовая звезда
+  if (h >= 6) return (
+    <svg width={18} height={18} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
+      <path d={STAR} fill="#9B30FF" />
+    </svg>
+  );
+
+  // Отель или депо — одна золотая звезда
+  if (h === 5 || hasDepot) return (
+    <svg width={11} height={11} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
+      <path d={STAR} fill="#FFD700" />
+    </svg>
+  );
+
+  // 1–4 дома — маленькие серые звёзды
+  return (
+    <div style={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      {Array.from({ length: h }).map((_, i) => (
+        <svg key={i} width={6} height={6} viewBox="0 0 24 24">
+          <path d={STAR} fill="#777" />
+        </svg>
+      ))}
+    </div>
+  );
 }
 
 export default function Board({ board, players, gameState, onCellClick, onCellRightClick, highlightOffered = [], highlightRequested = [], validMoveTargets, currentPlayerPosition, isContractOpen = false, roomPieces = {} }: Props) {
-const [animatedPlayers, setAnimatedPlayers] = useState<Record<string, number>>({});
 
 useEffect(() => {
 if (!gameState?.players) return;
@@ -166,7 +217,6 @@ const hasImprovements = (cell.houses || 0) > 0 || cell.hasDepot;
 const isContractDarkened = isContractOpen && hasImprovements;
 const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `${STRIP_SIZE + 2}px 2px 0` : i >= 14 && i <= 25 ? `2px ${STRIP_SIZE + 2}px 2px 2px` : i >= 27 && i <= 38 ? `2px 2px ${STRIP_SIZE + 2}px` : `2px 2px 2px ${STRIP_SIZE + 2}px`) : "2px";
 const displayValue = calculateRentDisplay(cell, board, cell.ownerId || '');
-const indicators = getCellIndicators(cell.houses, cell.hasDepot, cell.isMortgaged, cell.mortgageTurnsRemaining);
 return (
 <div
 key={cell.position ?? i}
@@ -188,12 +238,20 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 }}
 >
 {hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))} />}
+{hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
+  <div style={getInnerEdgeStyle(i)}>
+    <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} />
+  </div>
+)}
 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
 <div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
 <div style={{ fontSize: isCorner ? 9 : 7, opacity: 0.8, marginTop: 1, color: ownerColor ? '#fff' : '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
 {displayValue && <span>{displayValue}</span>}
-{indicators.building && <span style={{ fontSize: 10, letterSpacing: 1 }}>{indicators.building}</span>}
-{indicators.mortgage && <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>{indicators.mortgage}</span>}
+{cell.isMortgaged && (
+  <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>
+    🔒 {cell.mortgageTurnsRemaining ?? ''}
+  </span>
+)}
 </div>
 </div>
 <div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 1 }}>

@@ -56,7 +56,7 @@ export const styles: Record<string, React.CSSProperties> = {
   btnAction: { padding: "14px 36px", color: "white", border: "none", borderRadius: "30px", fontWeight: 'bold', cursor: "pointer", fontSize: "18px" },
   btnSmall: { padding: "6px 12px", fontSize: "12px", backgroundColor: "transparent", color: "#0071e3", border: "none", cursor: "pointer" },
     auctionOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 40, borderRadius: 16 },
-  auctionModal: { width: 380, backgroundColor: '#2a2a2a', borderRadius: 16, border: '1px solid #444', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 },
+  auctionModal: { width: 420, backgroundColor: '#141414', borderRadius: 22, border: '1px solid #2a2a2a', overflow: 'hidden', boxShadow: '0 32px 100px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column', gap: 0 },
   auctionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16, fontWeight: 700, color: '#eee', borderBottom: '1px solid #444', paddingBottom: 10 },
   auctionInfo: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' },
   auctionProp: { fontSize: 14, color: '#aaa' },
@@ -64,3 +64,54 @@ export const styles: Record<string, React.CSSProperties> = {
   auctionTurn: { fontSize: 14, color: '#888' },
   auctionActions: { display: 'flex', gap: 12, marginTop: 8 },
 };
+
+export const GLOBAL_STYLES = `
+  @keyframes tripleShine {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes auctionShine {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes raysSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  @keyframes bidPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  @keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .btn-hover:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+  }
+  .btn-hover:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn-hover:disabled {
+    opacity: 0.42 !important;
+    cursor: not-allowed !important;
+  }
+  .btn-buy:hover:not(:disabled) {
+    background-color: #1f9c48 !important;
+    box-shadow: 0 4px 14px rgba(26,122,58,0.45);
+  }
+  .btn-pay:hover:not(:disabled) {
+    background-color: #b83228 !important;
+    box-shadow: 0 4px 14px rgba(192,57,43,0.4);
+  }
+  .btn-ticket:hover:not(:disabled) {
+    background-color: #0e6b7a !important;
+    box-shadow: 0 4px 14px rgba(23,162,184,0.4);
+  }
+  .btn-roll:hover:not(:disabled) {
+    box-shadow: 0 0 14px 4px rgba(253,126,20,0.55);
+    transform: translateY(-1px);
+  }
+`;
