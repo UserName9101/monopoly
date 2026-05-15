@@ -171,7 +171,7 @@ export function PieceToken({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        filter: `drop-shadow(0 2px 4px ${color}99)`,
+        filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.6))`,
         flexShrink: 0,
       }}
       title={label}
