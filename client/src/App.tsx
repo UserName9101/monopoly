@@ -28,6 +28,7 @@ const GROUP_COLORS: Record<string, string> = {
 'station': '#333', 'utility': '#666'
 };
 
+function App() {
 useEffect(() => {
   const el = document.createElement('style');
   el.textContent = GLOBAL_STYLES;
@@ -35,7 +36,6 @@ useEffect(() => {
   return () => document.head.removeChild(el);
 }, []);
 
-function App() {
 const [token, setToken] = useState<string>(() => localStorage.getItem("token") || "");
 const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 const [usernameInput, setUsernameInput] = useState(""); const [passwordInput, setPasswordInput] = useState("");
