@@ -12,7 +12,7 @@ ContractProposal, RoomPayload, RoomSummary, ChatMessage, AuctionState
 import TimerDisplay from "./components/TimerDisplay";
 import PlayerCard from "./components/PlayerCard";
 import { getValidTicketTargets, validateBuild, validateSell, validateMortgage, validateUnmortgage, calculateTotalCapital } from "./utils/boardLogic";
-import { styles } from "./styles";
+import { styles, GLOBAL_STYLES } from "./styles";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -27,6 +27,13 @@ const GROUP_COLORS: Record<string, string> = {
 'e': '#FF0000', 'f': '#FFD700', 'g': '#008000', 'h': '#00008B',
 'station': '#333', 'utility': '#666'
 };
+
+useEffect(() => {
+  const el = document.createElement('style');
+  el.textContent = GLOBAL_STYLES;
+  document.head.appendChild(el);
+  return () => document.head.removeChild(el);
+}, []);
 
 function App() {
 const [token, setToken] = useState<string>(() => localStorage.getItem("token") || "");
@@ -586,8 +593,8 @@ return (
 <div style={styles.actionPanel}>
 <div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🔒 Тюрьма (Ход {gameState?.players[gameState.currentPlayerIndex]?.jailTurns || 0}/3)</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
-<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
-<button onClick={handleRollDice} disabled={isActionsDisabled} style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
+<button onClick={() => socket?.emit("pay_jail_fine")} disabled={(currentPlayerMoney || 0) < 50 || isActionsDisabled} className="btn-hover btn-buy" style={{...styles.btnSuccess, flex:1, opacity: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 1 : 0.5, cursor: (currentPlayerMoney || 0) >= 50 && !isActionsDisabled ? 'pointer' : 'not-allowed'}}>Заплатить $50</button>
+<button onClick={handleRollDice} disabled={isActionsDisabled} className="btn-hover btn-roll" style={{...styles.btnAction, flex:1, backgroundColor: '#fd7e14', opacity: isActionsDisabled ? 0.5 : 1, cursor: isActionsDisabled ? 'not-allowed' : 'pointer'}}>Бросить кубики (дубль)</button>
 </div>
 </div>
 )}
@@ -595,8 +602,8 @@ return (
 <div style={styles.actionPanel}>
 <div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🎁 Подарок на день рождения</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
-<button onClick={() => handleChooseBirthdayGift("money")} style={styles.btnSuccess}>Получить $100</button>
-<button onClick={() => handleChooseBirthdayGift("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable} style={{...styles.btnAction, backgroundColor: '#28a745', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>Взять билет</button>
+<button onClick={() => handleChooseBirthdayGift("money")} className="btn-hover" style={styles.btnSuccess}>Получить $100</button>
+<button onClick={() => handleChooseBirthdayGift("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable} className="btn-hover btn-ticket" style={{...styles.btnAction, backgroundColor: '#28a745', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>Взять билет</button>
 </div>
 </div>
 )}
@@ -605,10 +612,11 @@ return (
 <div style={styles.actionPanelHeader}><span style={{color:'#eee'}}>🚌 Выпал BUS</span>{gameState.turnStartTime && <TimerDisplay startTime={gameState.turnStartTime} isPaused={gameState.isPaused} />}</div>
 <div style={styles.actionPanelContent}>
 <button onClick={() => handleChooseBusAction("ticket")} disabled={!gameState.activeAction?.data?.ticketsAvailable}
+className="btn-hover btn-ticket"
 style={{...styles.btnAction, backgroundColor: '#17a2b8', opacity: gameState.activeAction?.data?.ticketsAvailable ? 1 : 0.5, cursor: gameState.activeAction?.data?.ticketsAvailable ? 'pointer' : 'not-allowed'}}>
 Взять билет
 </button>
-<button onClick={() => handleChooseBusAction("move")} style={styles.btnSuccess}>Перенестись на Шанс/Сундук</button>
+<button onClick={() => handleChooseBusAction("move")} className="btn-hover" style={styles.btnSuccess}>Перенестись на Шанс/Сундук</button>
 </div>
 </div>
 )}
@@ -643,6 +651,7 @@ lineHeight: 1.45
 <button
 onClick={handleRollDice}
 disabled={isActionsDisabled || isBalancing}
+className="btn-hover btn-roll"
 style={{
 ...styles.btnAction,
 backgroundColor: '#fd7e14',
@@ -650,12 +659,13 @@ opacity: (isActionsDisabled || isBalancing) ? 0.5 : 1,
 cursor: (isActionsDisabled || isBalancing) ? 'not-allowed' : 'pointer'
 }}
 >
-Roll
+🎲 Бросить кубики
 </button>
 {hasTickets && !isBalancing && (
 <button
 onClick={handleUseTicket}
 disabled={isActionsDisabled}
+className="btn-hover btn-ticket"
 style={{ ...styles.btnAction, backgroundColor: '#28a745', opacity: isActionsDisabled ? 0.5 : 1 }}
 >
 Use Ticket
@@ -671,8 +681,8 @@ Use Ticket
 {gameState.activeAction?.type === "BUY" && (
 <div style={styles.actionPanelContent}>
 <span style={{color:'#eee'}}>Купить за ${currentCell?.price}?</span>
-<button onClick={handleBuyProperty} disabled={!canAffordBuy} style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
-<button onClick={handleSkipAction} style={styles.btnSecondary}>Отказаться</button>
+<button onClick={handleBuyProperty} disabled={!canAffordBuy} className="btn-hover btn-buy" style={{ ...styles.btnSuccess, opacity: canAffordBuy ? 1 : 0.6, cursor: canAffordBuy ? 'pointer' : 'not-allowed' }}>Купить</button>
+<button onClick={handleSkipAction} className="btn-hover" style={styles.btnSecondary}>Отказаться</button>
 </div>
 )}
 {gameState.activeAction?.type === "PAY" && (
@@ -689,10 +699,11 @@ Use Ticket
 )}
 <div style={styles.actionPanelContent}>
 <span style={{color:'#eee'}}>Долг: ${debtAmount}</span>
-<button onClick={handlePayDebt} disabled={!canAffordPay} style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
+<button onClick={handlePayDebt} disabled={!canAffordPay} className="btn-hover btn-pay" style={{ ...styles.btnSuccess, opacity: canAffordPay ? 1 : 0.6, cursor: canAffordPay ? 'pointer' : 'not-allowed' }}>Заплатить</button>
 <button
 onClick={handleSurrender}
 disabled={canAffordPay}
+className="btn-hover"
 style={{
 ...styles.btnSecondary,
 color: !canAffordPay ? (cannotAffordEvenWithAssets ? '#ff4444' : '#ff6b6b') : '#555',
@@ -711,10 +722,72 @@ cursor: canAffordPay ? 'not-allowed' : 'pointer'
 </div>
 )}
 {isTripleChoice && isMyTurn && !activeContract && (
-<div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#ff0', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(255, 220, 0, 0.6)', textShadow: '0 0 15px #ff0', zIndex: 40, pointerEvents: 'none' }}>ТРОЙНОЙ ДУБЛЬ!<br />Выберите любую клетку</div>
+  <>
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%',
+      width: '160%', height: '160%',
+      background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,215,0,0.055) 18deg, transparent 36deg, rgba(255,215,0,0.035) 54deg, transparent 72deg, rgba(255,215,0,0.055) 90deg, transparent 108deg, rgba(255,215,0,0.035) 126deg, transparent 144deg, rgba(255,215,0,0.055) 162deg, transparent 180deg, rgba(255,215,0,0.035) 198deg, transparent 216deg, rgba(255,215,0,0.055) 234deg, transparent 252deg, rgba(255,215,0,0.035) 270deg, transparent 288deg, rgba(255,215,0,0.055) 306deg, transparent 324deg, rgba(255,215,0,0.035) 342deg, transparent 360deg)',
+      animation: 'raysSpin 6s linear infinite',
+      pointerEvents: 'none', zIndex: 39, borderRadius: '50%',
+    }} />
+    <div style={{
+      position: 'absolute', inset: 0, display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'rgba(17,17,17,0.93)', borderRadius: 16,
+      zIndex: 40, pointerEvents: 'none',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontSize: 26, fontWeight: 900,
+          background: 'linear-gradient(90deg, #b8860b, #ffd700, #fffacd, #ffd700, #b8860b)',
+          backgroundSize: '200% auto',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          animation: 'tripleShine 2.2s linear infinite',
+        }}>
+          ТРОЙНОЙ ДУБЛЬ!
+        </div>
+        <div style={{ color: '#777', fontSize: 14, marginTop: 10 }}>
+          Выберите любую клетку
+        </div>
+      </div>
+    </div>
+  </>
 )}
 {isChooseAuction && isMyTurn && !activeContract && (
-<div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.95)', color: '#00d4ff', fontSize: '24px', fontWeight: 700, textAlign: 'center', padding: '40px 20px', borderRadius: 16, boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)', textShadow: '0 0 15px #00d4ff', zIndex: 40, pointerEvents: 'none' }}>ВЫБЕРИТЕ СОБСТВЕННОСТЬ ДЛЯ АУКЦИОНА</div>
+  <>
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%',
+      width: '160%', height: '160%',
+      background: 'conic-gradient(from 0deg, transparent 0deg, rgba(0,200,255,0.045) 18deg, transparent 36deg, rgba(0,200,255,0.025) 54deg, transparent 72deg, rgba(0,200,255,0.045) 90deg, transparent 108deg, rgba(0,200,255,0.025) 126deg, transparent 144deg, rgba(0,200,255,0.045) 162deg, transparent 180deg, rgba(0,200,255,0.025) 198deg, transparent 216deg, rgba(0,200,255,0.045) 234deg, transparent 252deg, rgba(0,200,255,0.025) 270deg, transparent 288deg, rgba(0,200,255,0.045) 306deg, transparent 324deg, rgba(0,200,255,0.025) 342deg, transparent 360deg)',
+      animation: 'raysSpin 7s linear infinite',
+      pointerEvents: 'none', zIndex: 39, borderRadius: '50%',
+    }} />
+    <div style={{
+      position: 'absolute', inset: 0, display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'rgba(17,17,17,0.93)', borderRadius: 16,
+      zIndex: 40, pointerEvents: 'none',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontSize: 20, fontWeight: 800,
+          background: 'linear-gradient(90deg, #0a6e8a, #00d4ff, #e0f8ff, #00d4ff, #0a6e8a)',
+          backgroundSize: '200% auto',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          animation: 'auctionShine 2.2s linear infinite',
+        }}>
+          ВЫБЕРИТЕ ОБЪЕКТ ДЛЯ АУКЦИОНА
+        </div>
+        <div style={{ color: '#777', fontSize: 13, marginTop: 10 }}>
+          Кликните на свободную клетку поля
+        </div>
+      </div>
+    </div>
+  </>
 )}
 {!activeContract && !isTripleChoice && !isChooseAuction && !selectedCell && !shouldShowJail && !shouldShowBirthday && !shouldShowBus && (
 <div style={styles.chatMessages}>{messages.map(m => <div key={m.id} style={{ fontSize: 12, color: m.isSystem ? '#888' : '#eee' }}>{m.text}</div>)}<div ref={chatEndRef} /></div>
