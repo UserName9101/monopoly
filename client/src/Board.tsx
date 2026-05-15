@@ -8,7 +8,7 @@ const BOARD_SIZE = 2 * CORNER + 12 * CELL + 13 * GAP;
 const OFFSET = CORNER + GAP;
 const EDGE = BOARD_SIZE - CORNER;
 const STEP = CELL + GAP;
-const STRIP_SIZE = 6;
+const STRIP_SIZE = 20;
 
 const PLAYER_COLORS = ['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#FF33A8', '#33FFF5', '#F5FF33', '#FF8C33'];
 const CORNER_INDICES = [0, 13, 26, 39];
@@ -52,10 +52,10 @@ return { position: "absolute", top: OFFSET + (51 - index) * STEP, left: 0, width
 }
 
 function getStripStyle(index: number, color: string): React.CSSProperties {
-if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: 0, right: 0, height: STRIP_SIZE, background: color };
-if (index >= 14 && index <= 25) return { position: "absolute", right: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color };
-if (index >= 27 && index <= 38) return { position: "absolute", bottom: 0, left: 0, right: 0, height: STRIP_SIZE, background: color };
-return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color };
+if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: 0, right: 0, height: STRIP_SIZE, background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", whiteSpace: "pre-line", lineHeight: "1.1" };
+if (index >= 14 && index <= 25) return { position: "absolute", right: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", writingMode: "vertical-rl", whiteSpace: "pre-line", lineHeight: "1.1" };
+if (index >= 27 && index <= 38) return { position: "absolute", bottom: 0, left: 0, right: 0, height: STRIP_SIZE, background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", whiteSpace: "pre-line", lineHeight: "1.1" };
+return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", writingMode: "vertical-rl", whiteSpace: "pre-line", lineHeight: "1.1" };
 }
 
 function getInnerEdgeStyle(index: number): React.CSSProperties {
@@ -93,6 +93,14 @@ case 'e': return '#FF0000'; case 'f': return '#FFD700'; case 'g': return '#00800
 case 'station': return '#333'; case 'utility': return '#666'; default: return '#CCC';
 }
 };
+
+function formatStripText(priceValue: number, displayValue: string): string {
+if (!displayValue && !priceValue) return '';
+if (displayValue && priceValue) return `${priceValue}$\n${displayValue}`;
+if (displayValue) return displayValue;
+if (priceValue) return `${priceValue}$`;
+return '';
+}
 
 function getPlayerGradient(color: string): string {
   // Создаем градиент от цвета к немного более темному оттенку того же цвета
@@ -242,6 +250,8 @@ const hasImprovements = (cell.houses || 0) > 0 || cell.hasDepot;
 const isContractDarkened = isContractOpen && hasImprovements;
 const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `${STRIP_SIZE + 2}px 2px 0` : i >= 14 && i <= 25 ? `2px ${STRIP_SIZE + 2}px 2px 2px` : i >= 27 && i <= 38 ? `2px 2px ${STRIP_SIZE + 2}px` : `2px 2px 2px ${STRIP_SIZE + 2}px`) : "2px";
 const displayValue = calculateRentDisplay(cell, board, cell.ownerId || '');
+const priceValue = cell.price ?? 0;
+const stripText = formatStripText(priceValue, displayValue);
 return (
 <div
 key={cell.position ?? i}
@@ -262,7 +272,7 @@ transition: 'all 0.15s ease', zIndex: (isOffered || isRequested) ? 5 : 1,
 backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.15) 8px, rgba(220,53,69,0.15) 16px)' : (ownerGradient || 'none')
 }}
 >
-{hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))} />}
+{hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))}>{stripText}</div>}
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
   <div style={getInnerEdgeStyle(i)}>
     <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} />
@@ -270,14 +280,11 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 )}
 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
 <div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
-<div style={{ fontSize: isCorner ? 9 : 7, opacity: 0.8, marginTop: 1, color: ownerColor ? '#fff' : '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-{displayValue && <span>{displayValue}</span>}
 {cell.isMortgaged && (
   <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>
     🔒 {cell.mortgageTurnsRemaining ?? ''}
   </span>
 )}
-</div>
 </div>
 <div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 1 }}>
 {occupants.map((p: any) => {
