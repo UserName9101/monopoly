@@ -3,8 +3,8 @@
 node_modules/
 
 # Build outputs
-dist/
 build/
+dist/
 target/
 
 # Python
@@ -17,36 +17,33 @@ env/
 venv/
 .venv/
 .ENV
-.ENV.*
-.env
-.env.*
+.python-version
 
 # Logs
 *.log
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Environment variables
+.env
+.env.local
+*.env.*
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 *.tmp
 
-# Coverage
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
 coverage/
 htmlcov/
-.coverage
 
-# Compressed
+# Compressed files
 *.zip
 *.gz
 *.tar
