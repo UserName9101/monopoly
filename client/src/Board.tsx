@@ -55,7 +55,7 @@ function getStripStyle(index: number, color: string): React.CSSProperties {
 if (index >= 1 && index <= 12) return { position: "absolute", top: 0, left: 0, right: 0, height: STRIP_SIZE, background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", whiteSpace: "pre-line", lineHeight: "1.1" };
 if (index >= 14 && index <= 25) return { position: "absolute", right: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", writingMode: "vertical-rl", whiteSpace: "pre-line", lineHeight: "1.1" };
 if (index >= 27 && index <= 38) return { position: "absolute", bottom: 0, left: 0, right: 0, height: STRIP_SIZE, background: color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", whiteSpace: "pre-line", lineHeight: "1.1" };
-return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", writingMode: "vertical-rl", whiteSpace: "pre-line", lineHeight: "1.1", transform: "rotate(180deg)" };
+return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, background: color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: "bold", color: "#fff", textShadow: "0 0 2px rgba(0,0,0,0.8)", writingMode: "vertical-rl", whiteSpace: "pre-line", lineHeight: "1.1" };
 }
 
 function getInnerEdgeStyle(index: number): React.CSSProperties {
@@ -63,25 +63,25 @@ function getInnerEdgeStyle(index: number): React.CSSProperties {
   // Звёзды сдвинуты так, что половина выходит за клетку (ребро проходит через середину звезды)
   // Верхняя сторона (1–12): полоска top, внутрь = bottom
   if (index >= 1 && index <= 12) return {
-    position: "absolute", bottom: -6, left: 0, right: 0, height: 14,
+    position: "absolute", bottom: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
     gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Правая сторона (14–25): полоска right, внутрь = left
   if (index >= 14 && index <= 25) return {
-    position: "absolute", left: -6, top: 0, bottom: 0, width: 14,
+    position: "absolute", left: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center", gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Нижняя сторона (27–38): полоска bottom, внутрь = top
   if (index >= 27 && index <= 38) return {
-    position: "absolute", top: -6, left: 0, right: 0, height: 14,
+    position: "absolute", top: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
     gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Левая сторона (40–51): полоска left, внутрь = right
   return {
-    position: "absolute", right: -6, top: 0, bottom: 0, width: 14,
+    position: "absolute", right: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center", gap: 2, zIndex: 10, pointerEvents: "none",
   };
@@ -114,13 +114,13 @@ function adjustColorBrightness(hex: string, percent: number): string {
   const r = parseInt(cleanHex.substring(0, 2), 16);
   const g = parseInt(cleanHex.substring(2, 4), 16);
   const b = parseInt(cleanHex.substring(4, 6), 16);
-  
+
   // Затемняем или осветляем на процент
   const factor = percent / 100;
   const newR = Math.max(0, Math.min(255, Math.round(r + (r * factor))));
   const newG = Math.max(0, Math.min(255, Math.round(g + (g * factor))));
   const newB = Math.max(0, Math.min(255, Math.round(b + (b * factor))));
-  
+
   return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
 
@@ -174,25 +174,25 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
 
   if (h === 0 && !hasDepot) return null;
 
-  // Небоскрёб — одна крупная аметистовая звезда (увеличена в 2 раза: 18*2=36)
+  // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
-    <svg width={36} height={36} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
+    <svg width={54} height={54} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
       <path d={STAR} fill="#9B30FF" />
     </svg>
   );
 
-  // Отель или депо — одна золотая звезда (увеличена в 2 раза: 11*2=22)
+  // Отель или депо — одна золотая звезда (увеличена в 3 раза: 11*3=33)
   if (h === 5 || hasDepot) return (
-    <svg width={22} height={22} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
+    <svg width={33} height={33} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
       <path d={STAR} fill="#FFD700" />
     </svg>
   );
 
-  // 1–4 дома — маленькие серебряные звёзды (увеличены в 2 раза: 6*2=12)
+  // 1–4 дома — маленькие серебряные звёзды (увеличены в 3 раза: 6*3=18)
   return (
     <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
-        <svg key={i} width={12} height={12} viewBox="0 0 24 24">
+        <svg key={i} width={18} height={18} viewBox="0 0 24 24">
           <path d={STAR} fill="#C0C0C0" />
         </svg>
       ))}
