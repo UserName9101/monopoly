@@ -820,9 +820,9 @@ position: 'fixed',
 top: 0, left: 0, right: 0, bottom: 0,
 backgroundColor: 'rgba(0,0,0,0.85)',
 display: 'flex', justifyContent: 'center', alignItems: 'center',
-zIndex: 99999, borderRadius: 0, pointerEvents: 'auto'
+zIndex: 99999, pointerEvents: 'auto'
 }}>
-<div style={styles.auctionModal}>
+<div style={{...styles.auctionModal}}>
 <div style={styles.auctionHeader}>
 <span style={{color:'#eee'}}>🔨 Аукцион</span>
 <span style={{ color: auctionTimer <= 3 ? '#dc3545' : '#999', fontWeight: 'bold' }}>{auctionTimer}s</span>
