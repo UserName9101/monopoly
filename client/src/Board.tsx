@@ -176,14 +176,14 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
 
   // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
-    <svg width={54} height={54} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
+    <svg width={54} height={36} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
       <path d={STAR} fill="#9B30FF" />
     </svg>
   );
 
   // Отель или депо — одна золотая звезда (увеличена в 3 раза: 11*3=33)
   if (h === 5 || hasDepot) return (
-    <svg width={33} height={33} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
+    <svg width={33} height={22} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
       <path d={STAR} fill="#FFD700" />
     </svg>
   );
@@ -192,7 +192,7 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
   return (
     <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
-        <svg key={i} width={18} height={18} viewBox="0 0 24 24">
+        <svg key={i} width={12} height={18} viewBox="0 0 24 24">
           <path d={STAR} fill="#C0C0C0" />
         </svg>
       ))}
