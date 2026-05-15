@@ -172,6 +172,8 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
 
 export default function Board({ board, players, gameState, onCellClick, onCellRightClick, highlightOffered = [], highlightRequested = [], validMoveTargets, currentPlayerPosition, isContractOpen = false, roomPieces = {} }: Props) {
 
+const [animatedPlayers, setAnimatedPlayers] = useState<Record<string, number>>({});
+
 useEffect(() => {
 if (!gameState?.players) return;
 gameState.players.forEach((player: any) => {
