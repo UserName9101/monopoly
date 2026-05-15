@@ -188,12 +188,12 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
     </svg>
   );
 
-  // 1–4 дома — маленькие серые звёзды (увеличены в 3 раза: 6*3=18)
+  // 1–4 дома — маленькие серебряные звёзды (увеличены в 3 раза: 6*3=18)
   return (
-    <div style={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
         <svg key={i} width={18} height={18} viewBox="0 0 24 24">
-          <path d={STAR} fill="#777" />
+          <path d={STAR} fill="#C0C0C0" />
         </svg>
       ))}
     </div>
