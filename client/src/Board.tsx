@@ -263,7 +263,7 @@ background: isOffered ? '#FFD700' : isRequested ? '#00BFFF' : (ownerGradient || 
 border: isOffered ? '2px solid #B8860B' : isRequested ? '2px solid #007BFF' : (ownerColor ? `2px solid ${ownerColor}` : '1px solid #ccc'),
 boxSizing: "border-box",
 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-padding: contentPadding, textAlign: "center", overflow: "hidden",
+padding: contentPadding, textAlign: "center", overflow: hasImprovements ? "visible" : "hidden",
 cursor: onCellClick ? (isContractDarkened ? 'not-allowed' : (isSpecialMoveMode && !isValidTarget ? 'default' : 'pointer')) : 'default',
 filter: isContractDarkened ? 'grayscale(1) brightness(0.4)' : ((isSpecialMoveMode && !isValidTarget) || cell.isMortgaged ? 'grayscale(60%)' : 'none'),
 opacity: isContractDarkened ? 0.3 : (isSpecialMoveMode && !isValidTarget ? 0.5 : (cell.isMortgaged ? 0.7 : 1)),
