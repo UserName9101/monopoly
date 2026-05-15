@@ -133,12 +133,32 @@ export function findNextUnownedProperty(room: Room, currentPosition: number): nu
 
 export function findNextOpponentProperty(room: Room, currentPosition: number, currentUserId: string): number | null {
   const boardLength = room.board.length;
+  
+  // Сначала собираем все свойства оппонентов
+  const opponentProps: { pos: number; rent: number; dist: number }[] = [];
+  
   for (let i = 1; i < boardLength; i++) {
     const pos = (currentPosition + i) % boardLength;
     const cell = room.board[pos];
-    if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && cell.ownerId && cell.ownerId !== currentUserId && !cell.isMortgaged) return pos;
+    if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && cell.ownerId && cell.ownerId !== currentUserId && !cell.isMortgaged) {
+      const rent = calculateRent(cell, room.board, room.gameState.effectiveDiceSum ?? 7);
+      const dist = i;
+      opponentProps.push({ pos, rent, dist });
+    }
   }
-  return null;
+  
+  if (opponentProps.length === 0) return null;
+  
+  // Находим максимальную ренту
+  const maxRent = Math.max(...opponentProps.map(p => p.rent));
+  
+  // Фильтруем только клетки с максимальной рентой
+  const bestProps = opponentProps.filter(p => p.rent === maxRent);
+  
+  // Выбираем ближайшую из них
+  bestProps.sort((a, b) => a.dist - b.dist);
+  
+  return bestProps[0].pos;
 }
 
 export function getValidTicketTargets(position: number, boardLength: number = 52): number[] {
