@@ -193,7 +193,7 @@ function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDep
 
   // 1–4 дома — маленькие серебряные звёзды (увеличены в 3 раза: 6*3=18)
   return (
-    <div style={{ display: 'flex', flexDirection: isVerticalSide ? 'column' : 'row', gap: isVerticalSide ? 0 : 0, alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: isVerticalSide ? 'column' : 'row', gap: isVerticalSide ? -1 : 0, alignItems: 'center', justifyContent: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
         <svg key={i} width={12} height={18} viewBox="0 0 24 24">
           <path d={STAR} fill="#C0C0C0" />
