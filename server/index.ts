@@ -77,7 +77,12 @@ function performMrMonopolyEffect(roomId: string) {
 
     startPhaseTimer(roomId, "POST_MOVE");
   } else {
-    endCurrentPlayerTurn(roomId);
+    // Если некуда перемещаться, проверяем дубль для второго броска
+    if (gs.thisRollWasDoubles) {
+      startPhaseTimer(roomId, "ACTIONS");
+    } else {
+      endCurrentPlayerTurn(roomId);
+    }
   }
 }
 
@@ -261,7 +266,12 @@ function applyPendingSecondMove(roomId: string) {
       }
     }
 
-    startPhaseTimer(roomId, "POST_MOVE");
+    // После BUS extra move проверяем, был ли дубль - если да, то даём второй бросок
+    if (gs.thisRollWasDoubles) {
+      startPhaseTimer(roomId, "ACTIONS");
+    } else {
+      endCurrentPlayerTurn(roomId);
+    }
     return;
   }
 
@@ -629,7 +639,7 @@ const moveAmount = whiteSum + speedValue;
 if (dice.speed === "BUS") {
 gs.pendingBusBaseMove = moveAmount;
 gs.pendingBusChoice = true;
-gs.thisRollWasDoubles = false;
+gs.thisRollWasDoubles = isDoubles;
 
 gs.activeAction = {
 type: "CHOOSE_BUS_ACTION",
