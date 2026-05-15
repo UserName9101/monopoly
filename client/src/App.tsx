@@ -590,7 +590,11 @@ return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><sp
 </>)}
 {selectedCell.type === 'UTILITY' && (<>
 <div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от суммы кубиков и кол-ва Коммуналок.</div>
-<div style={styles.rentBlock}><div style={styles.rentRow}><span style={{color:'#888'}}>1 utility:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier1 || 4}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>2 utilities:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier2 || 10}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>3 utilities:</span><span style={{color:'#eee'}}>x{selectedCell.utilityMultiplier3 || 20}</span></div></div>
+<div style={styles.rentBlock}>{[1,2,3].map(n => {
+const ownedUtilities = board.filter(c => c.type === 'UTILITY' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
+const isActive = n === ownedUtilities;
+return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} utility:</span><span style={{color: isActive ? '#fff' : '#eee'}}>x{n === 1 ? (selectedCell.utilityMultiplier1 || 4) : n === 2 ? (selectedCell.utilityMultiplier2 || 10) : (selectedCell.utilityMultiplier3 || 20)}</span></div>;
+})}</div>
 </>)}
 <div style={{marginTop:'auto', padding:6, backgroundColor:'#1a1a1a', borderRadius:4, textAlign:'center', fontSize:11, color:'#888'}}><span>Mortgage: ${Math.floor((selectedCell.price || 0) * 0.5)}</span> | <span>Unmortgage: ${unmortgageCost}</span></div>
 {selectedCell.isMortgaged && (<div style={{textAlign:'center', color:'#dc3545', fontSize:12, marginTop:6}}>Заложено на {selectedCell.mortgageTurnsRemaining} ходов</div>)}
