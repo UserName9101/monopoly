@@ -572,10 +572,31 @@ return (
 {selectedCell.type === 'PROPERTY' && (
 <>
 <div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Стройте филиалы, чтобы увеличить ренту.</div>
-<div style={styles.rentBlock}><div style={styles.rentRow}><span style={{color:'#888'}}>Base:</span><span style={{color:'#eee'}}>${selectedCell.baseRent || 0}</span></div>{selectedCell.partialMonopolyRent && <div style={styles.rentRow}><span style={{color:'#888'}}>Partial:</span><span style={{color:'#eee'}}>${selectedCell.partialMonopolyRent}</span></div>}{selectedCell.monopolyRent && <div style={styles.rentRow}><span style={{color:'#888'}}>Monopoly:</span><span style={{color:'#eee'}}>${selectedCell.monopolyRent}</span></div>}</div>
+<div style={styles.rentBlock}>
+  <div style={styles.rentRow}><span style={{color:'#888'}}>Base:</span><span style={{color:'#eee'}}>${selectedCell.baseRent || 0}</span></div>
+  {selectedCell.partialMonopolyRent && (() => {
+    const hasOwner = !!selectedCell.ownerId;
+    const group = selectedCell.group || '';
+    const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
+    const ownedInGroup = allInGroup.filter(c => c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
+    const minForPartial = (group === 'a' || group === 'h') ? 2 : 3;
+    const status = ownedInGroup === allInGroup.length ? 'full' : (ownedInGroup >= minForPartial ? 'partial' : 'none');
+    const isActive = hasOwner && status === 'partial' && (selectedCell.houses || 0) === 0;
+    return <div key="partial" style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>Partial:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${selectedCell.partialMonopolyRent}</span></div>;
+  })()}
+  {selectedCell.monopolyRent && (() => {
+    const hasOwner = !!selectedCell.ownerId;
+    const group = selectedCell.group || '';
+    const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
+    const ownedInGroup = allInGroup.filter(c => c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
+    const status = ownedInGroup === allInGroup.length ? 'full' : 'none';
+    const isActive = hasOwner && status === 'full' && (selectedCell.houses || 0) === 0;
+    return <div key="monopoly" style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>Monopoly:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${selectedCell.monopolyRent}</span></div>;
+  })()}
+</div>
 <div style={styles.rentBlock}>{[1,2,3,4].map(n => {
 const currentHouses = selectedCell.houses || 0;
-const isActive = n === currentHouses;
+const isActive = n === currentHouses && !!selectedCell.ownerId;
 return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} house:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${(selectedCell as any)[`house${n}Rent`] || 0}</span></div>;
 })}<div style={styles.rentRow}><span style={{color:'#888'}}>Hotel:</span><span style={{color:'#eee'}}>${selectedCell.hotelRent || 0}</span></div><div style={styles.rentRow}><span style={{color:'#888'}}>Skyscraper:</span><span style={{color:'#eee'}}>${selectedCell.skyscraperRent || 0}</span></div></div>
 </>
@@ -583,16 +604,18 @@ return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><sp
 {selectedCell.type === 'STATION' && (<>
 <div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от кол-ва Ж/Д станций. Депо удваивает ренту.</div>
 <div style={styles.rentBlock}>{[1,2,3,4].map(n => {
-const ownedStations = board.filter(c => c.type === 'STATION' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
-const isActive = n === ownedStations;
+const hasOwner = !!selectedCell.ownerId;
+const ownedStations = hasOwner ? board.filter(c => c.type === 'STATION' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length : 0;
+const isActive = hasOwner && n === ownedStations;
 return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} station:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${(selectedCell as any)[`stationRent${n}`] || 0}</span></div>;
 })}</div>
 </>)}
 {selectedCell.type === 'UTILITY' && (<>
 <div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Рента зависит от суммы кубиков и кол-ва Коммуналок.</div>
 <div style={styles.rentBlock}>{[1,2,3].map(n => {
-const ownedUtilities = board.filter(c => c.type === 'UTILITY' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
-const isActive = n === ownedUtilities;
+const hasOwnerUtil = !!selectedCell.ownerId;
+const ownedUtilities = hasOwnerUtil ? board.filter(c => c.type === 'UTILITY' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length : 0;
+const isActive = hasOwnerUtil && n === ownedUtilities;
 return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} utility:</span><span style={{color: isActive ? '#fff' : '#eee'}}>x{n === 1 ? (selectedCell.utilityMultiplier1 || 4) : n === 2 ? (selectedCell.utilityMultiplier2 || 10) : (selectedCell.utilityMultiplier3 || 20)}</span></div>;
 })}</div>
 </>)}
