@@ -94,6 +94,28 @@ case 'station': return '#333'; case 'utility': return '#666'; default: return '#
 }
 };
 
+function getPlayerGradient(color: string): string {
+  // Создаем градиент от цвета к немного более темному оттенку того же цвета
+  // Это добавляет визуальную глубину, но вся клетка остается в цвете игрока
+  return `linear-gradient(135deg, ${color} 0%, ${adjustColorBrightness(color, -15)} 100%)`;
+}
+
+function adjustColorBrightness(hex: string, percent: number): string {
+  // Убираем # и парсим RGB компоненты
+  const cleanHex = hex.replace('#', '');
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  
+  // Затемняем или осветляем на процент
+  const factor = percent / 100;
+  const newR = Math.max(0, Math.min(255, Math.round(r + (r * factor))));
+  const newG = Math.max(0, Math.min(255, Math.round(g + (g * factor))));
+  const newB = Math.max(0, Math.min(255, Math.round(b + (b * factor))));
+  
+  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
 function getMonopolyStatus(board: BoardCellProps[], ownerId: string, group: string): 'none' | 'partial' | 'full' {
 const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
 if (allInGroup.length === 0) return 'none';
@@ -213,6 +235,7 @@ const isOffered = highlightOffered.includes(cell.position);
 const isRequested = highlightRequested.includes(cell.position);
 const ownerIdx = cell.ownerId ? players.findIndex((p: any) => p.userId === cell.ownerId) : -1;
 const ownerColor = ownerIdx !== -1 ? PLAYER_COLORS[ownerIdx % PLAYER_COLORS.length] : null;
+const ownerGradient = ownerColor ? getPlayerGradient(ownerColor) : null;
 const isSpecialMoveMode = !!validMoveTargets;
 const isValidTarget = !isSpecialMoveMode || validMoveTargets!.includes(cell.position);
 const hasImprovements = (cell.houses || 0) > 0 || cell.hasDepot;
@@ -226,7 +249,7 @@ onClick={() => !isContractDarkened && onCellClick?.(cell)}
 onContextMenu={(e) => { e.preventDefault(); onCellRightClick?.(cell); }}
 style={{
 ...getCellStyle(i),
-background: isOffered ? '#FFD700' : isRequested ? '#00BFFF' : (ownerColor || '#fff'),
+background: isOffered ? '#FFD700' : isRequested ? '#00BFFF' : (ownerGradient || '#fff'),
 border: isOffered ? '2px solid #B8860B' : isRequested ? '2px solid #007BFF' : (ownerColor ? `2px solid ${ownerColor}` : '1px solid #ccc'),
 boxSizing: "border-box",
 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -236,7 +259,7 @@ filter: isContractDarkened ? 'grayscale(1) brightness(0.4)' : ((isSpecialMoveMod
 opacity: isContractDarkened ? 0.3 : (isSpecialMoveMode && !isValidTarget ? 0.5 : (cell.isMortgaged ? 0.7 : 1)),
 pointerEvents: isContractDarkened || (isSpecialMoveMode && !isValidTarget) ? 'none' : 'auto',
 transition: 'all 0.15s ease', zIndex: (isOffered || isRequested) ? 5 : 1,
-backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.15) 8px, rgba(220,53,69,0.15) 16px)' : 'none'
+backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,53,69,0.15) 8px, rgba(220,53,69,0.15) 16px)' : (ownerGradient || 'none')
 }}
 >
 {hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))} />}
