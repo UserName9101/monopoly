@@ -28,6 +28,7 @@ export const styles: Record<string, React.CSSProperties> = {
   buildModal: { position: 'absolute', inset: 0, backgroundColor: '#2a2a2a', borderRadius: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 35, border: '1px solid #444' },
   rentBlock: { display: 'flex', flexDirection: 'column', gap: 2, padding: 4, backgroundColor: '#1a1a1a', borderRadius: 4 },
   rentRow: { display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '1px 0' },
+  rentRowActive: { display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 4px', backgroundColor: '#2d5016', borderRadius: 4, fontWeight: 600, border: '1px solid #4a8f29' },
   actionPanel: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: '#2a2a2a', borderBottom: '1px solid #444', padding: '10px 14px', zIndex: 25, borderRadius: '16px 16px 0 0', display: 'flex', flexDirection: 'column', gap: 8 },
   actionPanelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: '#eee', fontWeight: 600 },
   actionPanelContent: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
