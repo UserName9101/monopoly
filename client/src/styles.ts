@@ -1,15 +1,15 @@
 import React from "react";
 
 export const styles: Record<string, React.CSSProperties> = {
-  appContainer: { fontFamily: "sans-serif", backgroundColor: "#121212", height: "100vh", width: "100vw", overflow: "hidden", display: 'flex', flexDirection: 'column', margin: 0, padding: 0, boxSizing: 'border-box' },
+  appContainer: { fontFamily: "sans-serif", backgroundColor: "#121212", height: "100vh", width: "100vw", overflow: "visible", display: 'flex', flexDirection: 'column', margin: 0, padding: 0, boxSizing: 'border-box' },
   header: { height: 60, backgroundColor: "#1e1e1e", borderBottom: "1px solid #333", display: "flex", justifyContent: 'center', alignItems: "center", padding: "0 20px", width: '100%', flexShrink: 0 },
   headerInner: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
   mainContent: { flex: 1, width: '100%', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  gameCanvasContainer: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 0, boxSizing: 'border-box' },
+  gameCanvasContainer: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible', padding: 0, boxSizing: 'border-box' },
   gameCanvasInner: { width: 1378, height: 886, display: 'flex', gap: 24, boxSizing: 'border-box' },
   sideColumn: { width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, height: '100%', boxSizing: 'border-box' },
-  centerPanel: { width: 886, height: 886, flexShrink: 0, backgroundColor: 'transparent', borderRadius: 0, overflow: 'hidden', padding: 0, boxShadow: '0 8px 30px rgba(0,0,0,0.3)', boxSizing: 'border-box', position: 'relative' },
-  boardWrapper: { width: '100%', height: '100%', position: 'relative', overflow: 'hidden', boxSizing: 'border-box' },
+  centerPanel: { width: 886, height: 886, flexShrink: 0, backgroundColor: 'transparent', borderRadius: 0, overflow: 'visible', padding: 0, boxShadow: '0 8px 30px rgba(0,0,0,0.3)', boxSizing: 'border-box', position: 'relative' },
+  boardWrapper: { width: '100%', height: '100%', position: 'relative', overflow: 'visible', boxSizing: 'border-box' },
   centerChatOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 430, height: 500, backgroundColor: '#222', borderRadius: 16, boxShadow: '0 8px 30px rgba(0,0,0,0.3)', zIndex: 20, padding: '18px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid #333' },
   contractModal: { position: 'absolute', inset: 0, backgroundColor: '#2a2a2a', borderRadius: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 35, border: '1px solid #444' },
   contractHeader: { padding: '12px 16px', borderBottom: '1px solid #444', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: 14 },
@@ -57,7 +57,7 @@ export const styles: Record<string, React.CSSProperties> = {
   btnAction: { padding: "14px 36px", color: "white", border: "none", borderRadius: "30px", fontWeight: 'bold', cursor: "pointer", fontSize: "18px" },
   btnSmall: { padding: "6px 12px", fontSize: "12px", backgroundColor: "transparent", color: "#0071e3", border: "none", cursor: "pointer" },
     auctionOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 40, borderRadius: 16 },
-  auctionModal: { width: 420, backgroundColor: '#141414', borderRadius: 22, border: '1px solid #2a2a2a', overflow: 'hidden', boxShadow: '0 32px 100px rgba(0,0,0,0.8)', display: 'flex', flexDirection: 'column', gap: 0 },
+  auctionModal: { width: 420, backgroundColor: '#141414', borderRadius: 22, border: '1px solid #3a3a3a', overflow: 'visible', boxShadow: '0 32px 100px rgba(0,0,0,0.9)', display: 'flex', flexDirection: 'column', gap: 16, padding: 24, position: 'relative', zIndex: 100000 },
   auctionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 16, fontWeight: 700, color: '#eee', borderBottom: '1px solid #444', paddingBottom: 10 },
   auctionInfo: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' },
   auctionProp: { fontSize: 14, color: '#aaa' },
