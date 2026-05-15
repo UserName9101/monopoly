@@ -195,7 +195,7 @@ function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDep
   return (
     <div style={{ display: 'flex', flexDirection: isVerticalSide ? 'column' : 'row', gap: 0, alignItems: 'center', justifyContent: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
-        <svg key={i} width={12} height={18} viewBox="0 0 24 24">
+        <svg key={i} width={isVerticalSide ? 18 : 12} height={isVerticalSide ? 12 : 18} viewBox="0 0 24 24" style={{ transform: isVerticalSide ? 'rotate(90deg)' : undefined }}>
           <path d={STAR} fill="#C0C0C0" />
         </svg>
       ))}
