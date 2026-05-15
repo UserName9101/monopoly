@@ -62,27 +62,27 @@ function getInnerEdgeStyle(index: number): React.CSSProperties {
   // Ребро смотрящее ВНУТРЬ поля — противоположно полоске группы
   // Верхняя сторона (1–12): полоска top, внутрь = bottom
   if (index >= 1 && index <= 12) return {
-    position: "absolute", bottom: 0, left: 0, right: 0, height: 10,
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 1, zIndex: 5, pointerEvents: "none",
+    gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Правая сторона (14–25): полоска right, внутрь = left
   if (index >= 14 && index <= 25) return {
-    position: "absolute", left: 0, top: 0, bottom: 0, width: 10,
+    position: "absolute", left: 0, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", gap: 1, zIndex: 5, pointerEvents: "none",
+    justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Нижняя сторона (27–38): полоска bottom, внутрь = top
   if (index >= 27 && index <= 38) return {
-    position: "absolute", top: 0, left: 0, right: 0, height: 10,
+    position: "absolute", top: 0, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 1, zIndex: 5, pointerEvents: "none",
+    gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Левая сторона (40–51): полоска left, внутрь = right
   return {
-    position: "absolute", right: 0, top: 0, bottom: 0, width: 10,
+    position: "absolute", right: 0, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", gap: 1, zIndex: 5, pointerEvents: "none",
+    justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
   };
 }
 
