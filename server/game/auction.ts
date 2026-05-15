@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { Room } from "./types";
 import { getSafeRoom, resumeTurnTimer, endCurrentPlayerTurn, TURN_TIME_MS } from "../index";
+import { findNextUnownedProperty, findNextOpponentProperty } from "./boardLogic";
 
 const AUCTION_TURN_TIME_MS = 15000;
 
@@ -230,25 +231,12 @@ function endAuction(room: Room, io: Server, success: boolean) {
       if (gs.pendingMrEffect) {
         gs.pendingMrEffect = false;
         
-        let targetPos: number | null = -1;
-        for (let i = 1; i < room.board.length; i++) {
-          const pos = (c.position + i) % room.board.length;
-          const cell = room.board[pos];
-          if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && !cell.ownerId) {
-            targetPos = pos;
-            break;
-          }
-        }
+        // Сначала ищем свободную собственность
+        let targetPos = findNextUnownedProperty(room, c.position);
         
+        // Если нет свободной, ищем собственность оппонента с максимальной рентой (ближайшую среди них)
         if (targetPos === null) {
-          for (let i = 1; i < room.board.length; i++) {
-            const pos = (c.position + i) % room.board.length;
-            const cell = room.board[pos];
-            if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && cell.ownerId && cell.ownerId !== c.userId && !cell.isMortgaged) {
-              targetPos = pos;
-              break;
-            }
-          }
+          targetPos = findNextOpponentProperty(room, c.position, c.userId);
         }
         
         if (targetPos !== null) {
