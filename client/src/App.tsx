@@ -573,7 +573,16 @@ return (
 <>
 <div style={{fontSize:10, color:'#aaa', fontStyle:'italic'}}>Стройте филиалы, чтобы увеличить ренту.</div>
 <div style={styles.rentBlock}>
-  <div style={styles.rentRow}><span style={{color:'#888'}}>Base:</span><span style={{color:'#eee'}}>${selectedCell.baseRent || 0}</span></div>
+  {(() => {
+    const hasOwner = !!selectedCell.ownerId;
+    const group = selectedCell.group || '';
+    const allInGroup = board.filter(c => c.group === group && c.type === 'PROPERTY');
+    const ownedInGroup = allInGroup.filter(c => c.ownerId === selectedCell.ownerId && !c.isMortgaged).length;
+    const minForPartial = (group === 'a' || group === 'h') ? 2 : 3;
+    const status = ownedInGroup === allInGroup.length ? 'full' : (ownedInGroup >= minForPartial ? 'partial' : 'none');
+    const isBaseActive = hasOwner && status === 'none' && (selectedCell.houses || 0) === 0;
+    return <div style={isBaseActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isBaseActive ? '#fff' : '#888'}}>Base:</span><span style={{color: isBaseActive ? '#fff' : '#eee'}}>${selectedCell.baseRent || 0}</span></div>;
+  })()}
   {selectedCell.partialMonopolyRent && (() => {
     const hasOwner = !!selectedCell.ownerId;
     const group = selectedCell.group || '';
