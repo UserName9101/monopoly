@@ -60,27 +60,28 @@ return { position: "absolute", left: 0, top: 0, bottom: 0, width: STRIP_SIZE, ba
 
 function getInnerEdgeStyle(index: number): React.CSSProperties {
   // Ребро смотрящее ВНУТРЬ поля — противоположно полоске группы
+  // Звёзды сдвинуты так, что половина выходит за клетку (ребро проходит через середину звезды)
   // Верхняя сторона (1–12): полоска top, внутрь = bottom
   if (index >= 1 && index <= 12) return {
-    position: "absolute", bottom: 0, left: 0, right: 0, height: 14,
+    position: "absolute", bottom: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
     gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Правая сторона (14–25): полоска right, внутрь = left
   if (index >= 14 && index <= 25) return {
-    position: "absolute", left: 0, top: 0, bottom: 0, width: 14,
+    position: "absolute", left: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Нижняя сторона (27–38): полоска bottom, внутрь = top
   if (index >= 27 && index <= 38) return {
-    position: "absolute", top: 0, left: 0, right: 0, height: 14,
+    position: "absolute", top: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
     gap: 2, zIndex: 5, pointerEvents: "none",
   };
   // Левая сторона (40–51): полоска left, внутрь = right
   return {
-    position: "absolute", right: 0, top: 0, bottom: 0, width: 14,
+    position: "absolute", right: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
   };
@@ -174,25 +175,25 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
 
   if (h === 0 && !hasDepot) return null;
 
-  // Небоскрёб — одна крупная аметистовая звезда
+  // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
-    <svg width={18} height={18} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
+    <svg width={54} height={54} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
       <path d={STAR} fill="#9B30FF" />
     </svg>
   );
 
-  // Отель или депо — одна золотая звезда
+  // Отель или депо — одна золотая звезда (увеличена в 3 раза: 11*3=33)
   if (h === 5 || hasDepot) return (
-    <svg width={11} height={11} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
+    <svg width={33} height={33} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
       <path d={STAR} fill="#FFD700" />
     </svg>
   );
 
-  // 1–4 дома — маленькие серые звёзды
+  // 1–4 дома — маленькие серые звёзды (увеличены в 3 раза: 6*3=18)
   return (
     <div style={{ display: 'flex', gap: 1, alignItems: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
-        <svg key={i} width={6} height={6} viewBox="0 0 24 24">
+        <svg key={i} width={18} height={18} viewBox="0 0 24 24">
           <path d={STAR} fill="#777" />
         </svg>
       ))}
