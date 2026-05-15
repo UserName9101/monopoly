@@ -160,9 +160,9 @@ const onDiceRolled = ({ result, white1, white2, speed }: { result?: string; whit
 const onBuildError = (msg: string) => { addLog(`Build: ${msg}`, false); };
 const onSellError = (msg: string) => { addLog(`Sell: ${msg}`, false); };
 const onGameLog = ({ text, isSystem }: { text: string; isSystem: boolean }) => addLog(text, isSystem);
-const onAuctionStarted = ( any) => { setAuctionState(data); setAuctionTimer(Math.max(0, Math.ceil((data.deadline - Date.now()) / 1000))); };
-const onAuctionUpdate = ( any) => { setAuctionState(prev => prev ? { ...prev, ...data } : null); if (data.deadline) setAuctionTimer(Math.max(0, Math.ceil((data.deadline - Date.now()) / 1000))); };
-const onAuctionEnded = ( any) => { setAuctionState(null); setAuctionTimer(10); if (data.success) { addLog(`Аукцион завершен! ${data.winnerId === myProfile?.id ? "Вы выиграли" : `Победил ${players.find(p=>p.userId===data.winnerId)?.displayName || '???'}`} за $${data.price}`, false); } };
+const onAuctionStarted = (data: any) => { setAuctionState(data); setAuctionTimer(Math.max(0, Math.ceil((data.deadline - Date.now()) / 1000))); };
+const onAuctionUpdate = (data: any) => { setAuctionState(prev => prev ? { ...prev, ...data } : null); if (data.deadline) setAuctionTimer(Math.max(0, Math.ceil((data.deadline - Date.now()) / 1000))); };
+const onAuctionEnded = (data: any) => { setAuctionState(null); setAuctionTimer(10); if (data.success) { addLog(`Аукцион завершен! ${data.winnerId === myProfile?.id ? "Вы выиграли" : `Победил ${players.find(p=>p.userId===data.winnerId)?.displayName || '???'}`} за $${data.price}`, false); } };
 const onAuctionError = (msg: string) => { setAuctionState(null); setAuctionTimer(10); addLog(msg, false); };
 const onAuctionMessage = ({ message }: any) => addLog(message, false);
 const onPieceSelected = ({ userId, piece }: { userId: string; piece: PieceId }) => { setRoomPieces(prev => ({ ...prev, [userId]: piece })); };
