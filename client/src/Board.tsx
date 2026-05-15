@@ -65,25 +65,25 @@ function getInnerEdgeStyle(index: number): React.CSSProperties {
   if (index >= 1 && index <= 12) return {
     position: "absolute", bottom: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 2, zIndex: 5, pointerEvents: "none",
+    gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Правая сторона (14–25): полоска right, внутрь = left
   if (index >= 14 && index <= 25) return {
     position: "absolute", left: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
+    justifyContent: "center", gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Нижняя сторона (27–38): полоска bottom, внутрь = top
   if (index >= 27 && index <= 38) return {
     position: "absolute", top: -9, left: 0, right: 0, height: 14,
     display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 2, zIndex: 5, pointerEvents: "none",
+    gap: 2, zIndex: 10, pointerEvents: "none",
   };
   // Левая сторона (40–51): полоска left, внутрь = right
   return {
     position: "absolute", right: -9, top: 0, bottom: 0, width: 14,
     display: "flex", flexDirection: "column", alignItems: "center",
-    justifyContent: "center", gap: 2, zIndex: 5, pointerEvents: "none",
+    justifyContent: "center", gap: 2, zIndex: 10, pointerEvents: "none",
   };
 }
 
