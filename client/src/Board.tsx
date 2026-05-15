@@ -300,7 +300,7 @@ return <PieceToken key={p.userId} pieceId={pieceId} color={PLAYER_COLORS[idx % P
 </div>
 );
 })}
-<div style={{ position: "absolute", top: CORNER, left: CORNER, width: BOARD_SIZE - CORNER * 2, height: BOARD_SIZE - CORNER * 2, pointerEvents: "none", backgroundColor: '#cde6d0', borderRadius: 0 }} />
+<div style={{ position: "absolute", top: CORNER, left: CORNER, width: BOARD_SIZE - CORNER * 2, height: BOARD_SIZE - CORNER * 2, pointerEvents: "none", backgroundColor: '#121212', borderRadius: 0 }} />
 {gameState?.players?.map((player: any, idx: number) => {
 const visualPos = getPlayerVisualPosition(player);
 const center = getCellCenter(visualPos);
