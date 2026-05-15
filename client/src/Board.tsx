@@ -176,6 +176,7 @@ function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDep
 
   // Определяем, находится ли клетка на правой (14-25) или левой (40-51) стороне
   const isVerticalSide = (position !== undefined) && ((position >= 14 && position <= 25) || (position >= 40 && position <= 51));
+  const isLeftSide = (position !== undefined) && (position >= 40 && position <= 51);
 
   // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
@@ -195,7 +196,7 @@ function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDep
   return (
     <div style={{ display: 'flex', flexDirection: isVerticalSide ? 'column' : 'row', gap: 0, alignItems: 'center', justifyContent: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
-        <svg key={i} width={isVerticalSide ? 18 : 12} height={isVerticalSide ? 12 : 18} viewBox="0 0 24 24" style={{ transform: isVerticalSide ? 'rotate(90deg)' : undefined }}>
+        <svg key={i} width={isVerticalSide ? 18 : 12} height={isVerticalSide ? 12 : 18} viewBox="0 0 24 24" style={{ transform: isVerticalSide ? (isLeftSide ? 'rotate(270deg)' : 'rotate(90deg)') : undefined }}>
           <path d={STAR} fill="#C0C0C0" />
         </svg>
       ))}
