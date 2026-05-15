@@ -616,7 +616,9 @@ return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><sp
 const hasOwner = !!selectedCell.ownerId;
 const ownedStations = hasOwner ? board.filter(c => c.type === 'STATION' && c.ownerId === selectedCell.ownerId && !c.isMortgaged).length : 0;
 const isActive = hasOwner && n === ownedStations;
-return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} station:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${(selectedCell as any)[`stationRent${n}`] || 0}</span></div>;
+const baseRent = (selectedCell as any)[`stationRent${n}`] || 0;
+const rentWithDepot = selectedCell.hasDepot ? baseRent * 2 : baseRent;
+return <div key={n} style={isActive ? styles.rentRowActive : styles.rentRow}><span style={{color: isActive ? '#fff' : '#888'}}>{n} station:</span><span style={{color: isActive ? '#fff' : '#eee'}}>${rentWithDepot}</span></div>;
 })}</div>
 </>)}
 {selectedCell.type === 'UTILITY' && (<>
