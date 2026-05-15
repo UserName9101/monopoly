@@ -180,14 +180,14 @@ function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDep
 
   // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
-    <svg width={54} height={36} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0 }}>
+    <svg width={54} height={36} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px #9B30FF)', flexShrink: 0, transform: isVerticalSide ? (isLeftSide ? 'rotate(270deg)' : 'rotate(90deg)') : undefined }}>
       <path d={STAR} fill="#9B30FF" />
     </svg>
   );
 
   // Отель или депо — одна золотая звезда (увеличена в 3 раза: 11*3=33)
   if (h === 5 || hasDepot) return (
-    <svg width={33} height={22} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0 }}>
+    <svg width={33} height={22} viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 3px #FFD700)', flexShrink: 0, transform: isVerticalSide ? (isLeftSide ? 'rotate(270deg)' : 'rotate(90deg)') : undefined }}>
       <path d={STAR} fill="#FFD700" />
     </svg>
   );
