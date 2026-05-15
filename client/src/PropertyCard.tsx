@@ -57,7 +57,7 @@ export default function PropertyCard({
 
       <div>Тип: {cell.type}</div>
       <div>Цена: {cell.price ?? "-"}</div>
-      <div>Рента: {cell.baseRent ?? "-"}</div>
+      <div>Рента: {cell.baseRent ? (cell.hasDepot ? cell.baseRent * 2 : cell.baseRent) : "-"}</div>
       <div>Дома: {cell.houses ?? 0}</div>
       <div>Заложена: {cell.isMortgaged ? "Да" : "Нет"}</div>
 
