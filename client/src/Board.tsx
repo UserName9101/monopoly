@@ -97,9 +97,8 @@ case 'station': return '#333'; case 'utility': return '#666'; default: return '#
 
 function formatStripText(priceValue: number, displayValue: string): string {
 if (!displayValue && !priceValue) return '';
-if (displayValue && priceValue) return `${priceValue}$\n${displayValue}`;
 if (displayValue) return displayValue;
-if (priceValue) return `${priceValue}$`;
+if (priceValue) return String(priceValue);
 return '';
 }
 
@@ -158,7 +157,7 @@ if (cell.type === 'STATION') {
 const count = board.filter(c => c.group === 'station' && c.ownerId === ownerId && !c.isMortgaged).length;
 const rents = [25, 50, 100, 200];
 const baseRent = rents[Math.min(count, 4) - 1] ?? 0;
-return `$${cell.hasDepot ? baseRent * 2 : baseRent}`;
+return String(cell.hasDepot ? baseRent * 2 : baseRent);
 }
 if (cell.type === 'UTILITY') {
 const count = board.filter(c => c.group === 'utility' && c.ownerId === ownerId && !c.isMortgaged).length;
