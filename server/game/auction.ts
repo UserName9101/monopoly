@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import { Room } from "./types";
 import { getSafeRoom, resumeTurnTimer, endCurrentPlayerTurn, TURN_TIME_MS } from "../index";
 
+const AUCTION_TURN_TIME_MS = 15000;
+
 export function startAuction(room: Room, cellPosition: number, includeInitiator: boolean, io: Server) {
   const cell = room.board[cellPosition];
   if (!cell || !["PROPERTY", "STATION", "UTILITY"].includes(cell.type) || cell.ownerId !== undefined) {
@@ -40,7 +42,7 @@ export function startAuction(room: Room, cellPosition: number, includeInitiator:
     currentIdx: 0,
     hasIncreasedBid: {},
     lastBidderId: undefined,
-    deadline: Date.now() + 10000,
+    deadline: Date.now() + AUCTION_TURN_TIME_MS,
   };
 
   const remaining = room.gameState.turnStartTime
@@ -72,7 +74,7 @@ export function handleBid(room: Room, userId: string, io: Server) {
   state.currentBid += 10;
   state.hasIncreasedBid[userId] = true;
   state.lastBidderId = userId;
-  state.deadline = Date.now() + 10000;
+  state.deadline = Date.now() + AUCTION_TURN_TIME_MS;
 
   // Если это последний участник и он повысил ставку -> мгновенная победа
   if (state.queue.length === 1) {
@@ -111,7 +113,7 @@ export function handleDrop(room: Room, userId: string, io: Server) {
     } 
     // Если НЕ повышал -> даем шанс сделать первую ставку
     else {
-      state.deadline = Date.now() + 10000;
+      state.deadline = Date.now() + AUCTION_TURN_TIME_MS;
       io.to(room.id).emit("auction_update", {
         queue: state.queue,
         currentBidderId: remainingPlayerId,
@@ -123,7 +125,7 @@ export function handleDrop(room: Room, userId: string, io: Server) {
   }
 
   // Игроков > 1, передаем ход следующему
-  state.deadline = Date.now() + 10000;
+  state.deadline = Date.now() + AUCTION_TURN_TIME_MS;
   io.to(room.id).emit("auction_update", {
     queue: state.queue,
     currentBidderId: state.queue[0],
@@ -152,7 +154,7 @@ function nextAuctionTurn(room: Room, io: Server) {
   const currentBidder = state.queue.shift();
   if (currentBidder) state.queue.push(currentBidder);
   
-  state.deadline = Date.now() + 10000;
+  state.deadline = Date.now() + AUCTION_TURN_TIME_MS;
   io.to(room.id).emit("auction_update", { currentBidderId: state.queue[0], deadline: state.deadline });
   setupAuctionTimer(room, io);
 }
@@ -218,7 +220,101 @@ function endAuction(room: Room, io: Server, success: boolean) {
   room.gameState.isPaused = false;
   
   resumeTurnTimer(room);
-  endCurrentPlayerTurn(room.id);
+  
+  // Проверяем pending эффекты MR/Bus после аукциона
+  if (room.gameState.pendingMrEffect || room.gameState.pendingBusExtraMove) {
+    const gs = room.gameState;
+    const c = gs.players[gs.currentPlayerIndex];
+    
+    if (c && !c.isBankrupt) {
+      if (gs.pendingMrEffect) {
+        gs.pendingMrEffect = false;
+        
+        let targetPos: number | null = -1;
+        for (let i = 1; i < room.board.length; i++) {
+          const pos = (c.position + i) % room.board.length;
+          const cell = room.board[pos];
+          if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && !cell.ownerId) {
+            targetPos = pos;
+            break;
+          }
+        }
+        
+        if (targetPos === null) {
+          for (let i = 1; i < room.board.length; i++) {
+            const pos = (c.position + i) % room.board.length;
+            const cell = room.board[pos];
+            if ((cell.type === "PROPERTY" || cell.type === "STATION" || cell.type === "UTILITY") && cell.ownerId && cell.ownerId !== c.userId && !cell.isMortgaged) {
+              targetPos = pos;
+              break;
+            }
+          }
+        }
+        
+        if (targetPos !== null) {
+          const dist = (targetPos - c.position + room.board.length) % room.board.length;
+          const addRes = room.engine.calculateMove(c.position, dist);
+          
+          c.position = addRes.newPosition;
+          c.money += addRes.moneyChange;
+          gs.effectiveDiceSum = dist;
+          
+          const pName = room.players.find(p => p.userId === c.userId)?.displayName || 'Игрок';
+          io.to(room.id).emit("game_log", {
+            text: `${pName} (Mr. Monopoly) перемещается на ${room.board[targetPos].name}.`,
+            isSystem: true
+          });
+          
+          // После перемещения запускаем POST_MOVE для обработки клетки
+          require("../index").startPhaseTimer(room.id, "POST_MOVE");
+        } else {
+          if (gs.thisRollWasDoubles) {
+            require("../index").startPhaseTimer(room.id, "ACTIONS");
+          } else {
+            endCurrentPlayerTurn(room.id);
+          }
+        }
+      } else if (gs.pendingBusExtraMove) {
+        gs.pendingBusExtraMove = false;
+        
+        let nextPos = -1;
+        for (let i = 1; i < room.board.length; i++) {
+          const pos = (c.position + i) % room.board.length;
+          if (room.board[pos].type === "CHANCE" || room.board[pos].type === "CHEST") {
+            nextPos = pos;
+            break;
+          }
+        }
+        
+        if (nextPos !== -1) {
+          const dist = (nextPos - c.position + room.board.length) % room.board.length;
+          const res = room.engine.calculateMove(c.position, dist);
+          
+          c.position = res.newPosition;
+          c.money += res.moneyChange;
+          gs.effectiveDiceSum = dist;
+          
+          const pName = room.players.find(p => p.userId === c.userId)?.displayName || 'Игрок';
+          io.to(room.id).emit("game_log", {
+            text: `${pName} перемещается на ближайший Шанс/Сундук: ${room.board[nextPos].name}.`,
+            isSystem: true
+          });
+          
+          require("../index").startPhaseTimer(room.id, "POST_MOVE");
+        } else {
+          if (gs.thisRollWasDoubles) {
+            require("../index").startPhaseTimer(room.id, "ACTIONS");
+          } else {
+            endCurrentPlayerTurn(room.id);
+          }
+        }
+      }
+    } else {
+      endCurrentPlayerTurn(room.id);
+    }
+  } else {
+    endCurrentPlayerTurn(room.id);
+  }
 
   io.to(room.id).emit("state_update", room.gameState);
   io.to(room.id).emit("room_updated", getSafeRoom(room));
