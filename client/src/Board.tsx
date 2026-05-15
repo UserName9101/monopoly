@@ -169,10 +169,13 @@ return '';
 
 const STAR = "M12 2l2.09 6.26h6.63l-5.45 3.87 2.09 6.26L12 14.5l-5.36 3.89 2.09-6.26L3.28 8.26h6.63z";
 
-function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boolean }) {
+function BuildingStars({ houses, hasDepot, position }: { houses?: number; hasDepot?: boolean; position?: number }) {
   const h = houses || 0;
 
   if (h === 0 && !hasDepot) return null;
+
+  // Определяем, находится ли клетка на правой (14-25) или левой (40-51) стороне
+  const isVerticalSide = (position !== undefined) && ((position >= 14 && position <= 25) || (position >= 40 && position <= 51));
 
   // Небоскрёб — одна крупная аметистовая звезда (увеличена в 3 раза: 18*3=54)
   if (h >= 6) return (
@@ -190,7 +193,7 @@ function BuildingStars({ houses, hasDepot }: { houses?: number; hasDepot?: boole
 
   // 1–4 дома — маленькие серебряные звёзды (увеличены в 3 раза: 6*3=18)
   return (
-    <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: isVerticalSide ? 'column' : 'row', gap: 0, alignItems: 'center', justifyContent: 'center' }}>
       {Array.from({ length: h }).map((_, i) => (
         <svg key={i} width={12} height={18} viewBox="0 0 24 24">
           <path d={STAR} fill="#C0C0C0" />
@@ -275,7 +278,7 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 {hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))}>{stripText}</div>}
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
   <div style={getInnerEdgeStyle(i)}>
-    <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} />
+    <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} position={i} />
   </div>
 )}
 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
