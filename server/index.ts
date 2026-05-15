@@ -483,21 +483,24 @@ socket.on("join_room", (rid: string) => {
 const r = rooms.get(rid);
 if (!r) return socket.emit("join_error", "Not found");
 
-// Проверка на переприсоединение отключённого игрока
-const exDisconnected = r.players.find(p => p.userId === socket.data.userId && !p.isOnline);
-if (exDisconnected) {
-  exDisconnected.socketId = socket.id;
-  exDisconnected.isOnline = true;
+// Переприсоединение: ищем игрока по userId в комнате (online или offline)
+const existingPlayer = r.players.find(p => p.userId === socket.data.userId);
+if (existingPlayer) {
+  // Восстанавливаем соединение существующего игрока
+  existingPlayer.socketId = socket.id;
+  existingPlayer.isOnline = true;
   socket.join(rid);
   socket.emit("room_joined", getSafeRoom(r));
   socket.emit("state_update", r.gameState);
   io.to(rid).emit("room_updated", getSafeRoom(r));
+  io.to(rid).emit("game_log", {
+    text: `${existingPlayer.displayName} переприсоединился к игре.`,
+    isSystem: true
+  });
   return;
 }
 
-// Обычное присоединение нового игрока
-const ex = r.players.find(p => p.userId === socket.data.userId);
-if (ex) { ex.socketId = socket.id; ex.isOnline = true; socket.join(rid); socket.emit("room_joined", getSafeRoom(r)); socket.emit("state_update", r.gameState); io.to(rid).emit("room_updated", getSafeRoom(r)); return; }
+// Новый игрок в лобби
 if (r.status === "PLAYING") return socket.emit("join_error", "Started");
 if (r.players.length >= r.settings.maxPlayers) return socket.emit("join_error", "Full");
 r.players.push({ userId: socket.data.userId, socketId: socket.id, displayName: socket.data.profile.displayName, avatarUrl: socket.data.profile.avatarUrl, isOnline: true });
