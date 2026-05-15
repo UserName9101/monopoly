@@ -482,6 +482,20 @@ socket.emit("room_created", getSafeRoom(r)); io.to(rid).emit("state_update", r.g
 socket.on("join_room", (rid: string) => {
 const r = rooms.get(rid);
 if (!r) return socket.emit("join_error", "Not found");
+
+// Проверка на переприсоединение отключённого игрока
+const exDisconnected = r.players.find(p => p.userId === socket.data.userId && !p.isOnline);
+if (exDisconnected) {
+  exDisconnected.socketId = socket.id;
+  exDisconnected.isOnline = true;
+  socket.join(rid);
+  socket.emit("room_joined", getSafeRoom(r));
+  socket.emit("state_update", r.gameState);
+  io.to(rid).emit("room_updated", getSafeRoom(r));
+  return;
+}
+
+// Обычное присоединение нового игрока
 const ex = r.players.find(p => p.userId === socket.data.userId);
 if (ex) { ex.socketId = socket.id; ex.isOnline = true; socket.join(rid); socket.emit("room_joined", getSafeRoom(r)); socket.emit("state_update", r.gameState); io.to(rid).emit("room_updated", getSafeRoom(r)); return; }
 if (r.status === "PLAYING") return socket.emit("join_error", "Started");
@@ -1084,7 +1098,16 @@ socket.on("surrender", () => {
   }
 });
 
-socket.on("disconnect", () => { for (const [rid, r] of rooms.entries()) { const p = r.players.find(pl => pl.socketId === socket.id); if (p) { p.isOnline = false; io.to(rid).emit("room_updated", getSafeRoom(r)); break; } } });
+socket.on("disconnect", () => {
+  for (const [rid, r] of rooms.entries()) {
+    const p = r.players.find(pl => pl.socketId === socket.id);
+    if (p) {
+      p.isOnline = false;
+      io.to(rid).emit("room_updated", getSafeRoom(r));
+      break;
+    }
+  }
+});
 
 socket.on("select_piece", ({ piece }: { piece: string }) => {
   const r = Array.from(rooms.values()).find(rm =>
