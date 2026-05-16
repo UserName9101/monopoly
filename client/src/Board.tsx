@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PieceToken, type PieceId } from "./components/PieceSelector";
-import cornerImage from "./pictures/angle.svg";
-import nonCornerImage from "./pictures/not_angle.svg";
+import cornerImage from "./pictures/corner.svg?url";
+import nonCornerImage from "./pictures/non-corner.svg?url";
 
 const CORNER = 100;
 const CELL = 55;
