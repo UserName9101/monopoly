@@ -292,6 +292,7 @@ height: "100%",
 objectFit: "contain",
 pointerEvents: "none",
 zIndex: 2,
+transform: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? 'rotate(-90deg)' : undefined,
 }}
 />
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
