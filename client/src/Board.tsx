@@ -286,12 +286,27 @@ style={{
 position: "absolute",
 top: 0,
 left: 0,
-width: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? CELL : "100%",
-height: (i >= 14 && i <= 25) || (i >= 40 && i <= 51) ? CELL : "100%",
+
+width:
+(i >= 1 && i <= 12) || (i >= 27 && i <= 38)
+? CORNER
+: CELL,
+
+height:
+(i >= 1 && i <= 12) || (i >= 27 && i <= 38)
+? CELL
+: CORNER,
+
 objectFit: "contain",
 pointerEvents: "none",
 zIndex: 2,
-transform: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? 'rotate(-90deg)' : undefined,
+
+transform:
+(i >= 1 && i <= 12) || (i >= 27 && i <= 38)
+? "rotate(-90deg)"
+: undefined,
+
+transformOrigin: "center center",
 }}
 />
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
