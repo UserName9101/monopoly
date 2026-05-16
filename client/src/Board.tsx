@@ -286,8 +286,8 @@ style={{
 position: "absolute",
 top: 0,
 left: 0,
-width: "100%",
-height: "100%",
+width: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? CELL : "100%",
+height: (i >= 14 && i <= 25) || (i >= 40 && i <= 51) ? CELL : "100%",
 objectFit: "contain",
 pointerEvents: "none",
 zIndex: 2,
@@ -300,7 +300,6 @@ transform: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? 'rotate(-90deg)' : unde
   </div>
 )}
 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", height: "100%", position: "relative", zIndex: 3 }}>
-<div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
 {cell.isMortgaged && (
   <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>
     🔒 {cell.mortgageTurnsRemaining ?? ''}
