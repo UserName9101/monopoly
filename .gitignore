@@ -12,52 +12,41 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.py~
-*.py.class
 .Python
 env/
 venv/
 .venv/
-.env
-.env.local
-.env.*
-.venv/
 .ENV
-.python-version
-.python-history
+.ENV.*
+.venv/
+.venv.*
+.env
+.env.*
+.ENV.*
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
 .coverage
-.coverage.*
-.cache
-.pytest_cache/
-.mypy_cache/
-.tox/
-.hypothesis/
 
-# Compiled and binary files
-*.o
-*.obj
-*.so
-*.a
-*.lib
-*.dll
-*.dylib
-*.exe
-*.out
-*.class
-*.jar
-*.war
-*.ear
-*.bin
-*.dat
-*.hex
-*.ko
-*.mod.c
-*.orig
-
-# Archives and compressed
+# Compressed
 *.zip
-*.tar
 *.gz
+*.tar
 *.tgz
 *.bz2
 *.xz
@@ -78,86 +67,20 @@ venv/
 *.tar.xz
 *.tar.zst
 
-# Logs
-*.log
-*.log.*
+# MyPy
+.mypy_cache/
 
-# Editor and IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# PyTest
+.pytest_cache/
+
+# Gradle
+.gradle/
+
+# Temporary files
 *.tmp
 *~
-\#*\#
-.DS_Store
-Thumbs.db
-
-# Test and coverage
-coverage/
-htmlcov/
-.nyc_output/
-istanbul/
-.jest/
-jest/
-mochawesome-report/
-.tap/
-
-# OS generated
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Icon?
-Thumbs.db
-VolumeIcon.icns
-
-# Environment specific
-.env
-.env.local
-.env.*
-!.env.example
-!.env.sample
-!.env.schema
-!.env.template
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Temporary folders
-temp/
-tmp/
-
-# Package manager
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.sass-cache
-connect.lock
-.yarn-integrity
-.yarn-cache
-.npm
-.npmrc
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lockb
-
-# System files
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.Spotlight-V100
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.com.apple.FinderInfo
-.netrc
 ```
+
+Wait, let me reconsider this. The only modified file is `client/src/Board.tsx`, which is a TypeScript React component file. This appears to be just a source code change without any build artifacts, dependencies, or temporary files in the change list.
+
+(empty)
