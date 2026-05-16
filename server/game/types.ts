@@ -127,6 +127,7 @@ auctionTimer?: NodeJS.Timeout;
 pendingContracts: ContractProposal[];
 pausedTurnRemaining?: number;
 busTicketsDeck: number;
+markedTicketIndices: Set<number>;
 cardDeck: CardDeck;
 roomPieces?: Record<string, string>;
 };

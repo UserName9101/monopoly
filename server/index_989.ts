@@ -36,7 +36,7 @@ const MAX_CONTRACTS_PER_TURN = 3;
 const MORTGAGE_TURNS_LIMIT = 5;
 
 export function getSafeRoom(room: Room) {
-const { engine, turnTimer, phaseTimer, pendingContracts, pausedTurnRemaining, auctionTimer, ...s } = room;
+const { engine, turnTimer, phaseTimer, pendingContracts, pausedTurnRemaining, auctionTimer, markedTicketIndices, ...s } = room;
 return s;
 }
 
@@ -433,13 +433,25 @@ socket.on("create_room", (settings?: { mode?: "CLASSIC" | "MEGA"; maxPlayers?: n
 const rid = crypto.randomUUID();
 const fs = { mode: settings?.mode || "MEGA", maxPlayers: settings?.mode === "CLASSIC" ? 4 : (settings?.maxPlayers || 8) };
 const bb = fs.mode === "MEGA" ? MEGA_BOARD_CONFIG : CLASSIC_BOARD_CONFIG;
+
+// Генерируем случайное количество билетов от 10 до 50
+const initialTickets = Math.floor(Math.random() * 41) + 10; // 10-50
+
+// Генерируем индексы меченых билетов (1-10% от общего количества, без повторов)
+const markedCount = Math.max(1, Math.floor(initialTickets * (Math.floor(Math.random() * 10) + 1) / 100)); // 1-10%
+const markedIndices = new Set<number>();
+while (markedIndices.size < markedCount) {
+    const randomIndex = Math.floor(Math.random() * initialTickets); // индекс от 0 до initialTickets-1
+    markedIndices.add(randomIndex);
+}
+
 const r: Room = {
 id: rid,
 players: [{ userId: socket.data.userId, socketId: socket.id, displayName: socket.data.profile.displayName, avatarUrl: socket.data.profile.avatarUrl, isOnline: true }],
 gameState: { players: [{ userId: socket.data.userId, position: 0, money: 2500, isBankrupt: false, busTickets: 0 }], currentPlayerIndex: 0, currentPhase: "ACTIONS", activeAction: { type: "ROLL" }, contractsUsedThisTurn: 0, pendingMrEffect: false, thisRollWasDoubles: false, consecutiveDoubles: 0, forcedBalanceGroupId: null, pendingBalanceResolveAction: null, pendingBusChoice: false, pendingBusBaseMove: undefined, pendingBusExtraMove: false },
 status: "LOBBY", hostId: socket.id, settings: fs, engine: createEngine(fs.mode), createdAt: Date.now(),
 board: bb.map((c, idx) => ({ ...c, position: idx, ownerId: undefined, houses: 0, isMortgaged: false })),
-pendingContracts: [], busTicketsDeck: 100,
+pendingContracts: [], busTicketsDeck: initialTickets, markedTicketIndices: markedIndices,
 cardDeck: { chance: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], chest: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] },
 turnTimer: undefined, phaseTimer: undefined, auctionTimer: undefined
 };
@@ -726,8 +738,31 @@ socket.emit("error", "Билетов больше нет.");
 r.gameState.activeAction = null; endCurrentPlayerTurn(r.id);
 io.to(r.id).emit("state_update", r.gameState); io.to(r.id).emit("room_updated", getSafeRoom(r)); return;
 }
-c.busTickets++; r.busTicketsDeck--;
-io.to(r.id).emit("game_log", { text: `${pName} взял билет на автобус! (Осталось: ${r.busTicketsDeck})`, isSystem: true });
+// Вычисляем номер вытягиваемого билета (индекс от 0 до busTicketsDeck-1)
+const ticketIndex = r.busTicketsDeck - 1;
+const isMarked = r.markedTicketIndices.has(ticketIndex);
+
+c.busTickets++; 
+r.busTicketsDeck--;
+
+if (isMarked) {
+    // Активируем эффект меченого билета
+    io.to(r.id).emit("game_log", { text: `${pName} вытянул МЕЧЕНЫЙ билет! Все билеты сгорают!`, isSystem: true });
+    
+    for (const player of r.gameState.players) {
+        if (player.busTickets > 0) {
+            player.busTickets = 0;
+        }
+    }
+    c.busTickets = 1;
+    
+    io.to(r.id).emit("game_log", { 
+        text: `🎫 МЕЧЕНЫЙ БИЛЕТ! У всех игроков билеты аннулированы. У ${pName} остался только 1 меченый билет.`, 
+        isSystem: true 
+    });
+} else {
+    io.to(r.id).emit("game_log", { text: `${pName} взял билет на автобус! (Осталось: ${r.busTicketsDeck})`, isSystem: true });
+}
 } else {
 c.money += 100;
 io.to(r.id).emit("game_log", { text: `${pName} получил $100 от банка!`, isSystem: true });
@@ -750,9 +785,31 @@ if (r.busTicketsDeck <= 0) {
 socket.emit("error", "Билетов больше нет. Перемещаемся на Шанс/Сундук.");
 choice = "move";
 } else {
-c.busTickets = (c.busTickets || 0) + 1;
-r.busTicketsDeck--;
-io.to(r.id).emit("game_log", { text: `${pName} взял билет на автобус! (Осталось: ${r.busTicketsDeck})`, isSystem: true });
+    // Вычисляем номер вытягиваемого билета (индекс от 0 до busTicketsDeck-1)
+    const ticketIndex = r.busTicketsDeck - 1;
+    const isMarked = r.markedTicketIndices.has(ticketIndex);
+    
+    c.busTickets = (c.busTickets || 0) + 1;
+    r.busTicketsDeck--;
+    
+    if (isMarked) {
+        // Активируем эффект меченого билета
+        io.to(r.id).emit("game_log", { text: `${pName} вытянул МЕЧЕНЫЙ билет! Все билеты сгорают!`, isSystem: true });
+        
+        for (const player of r.gameState.players) {
+            if (player.busTickets > 0) {
+                player.busTickets = 0;
+            }
+        }
+        c.busTickets = 1;
+        
+        io.to(r.id).emit("game_log", { 
+            text: `🎫 МЕЧЕНЫЙ БИЛЕТ! У всех игроков билеты аннулированы. У ${pName} остался только 1 меченый билет.`, 
+            isSystem: true 
+        });
+    } else {
+        io.to(r.id).emit("game_log", { text: `${pName} взял билет на автобус! (Осталось: ${r.busTicketsDeck})`, isSystem: true });
+    }
 }
 }
 

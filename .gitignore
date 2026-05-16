@@ -1,40 +1,41 @@
-```gitignore
-# Dependencies
-node_modules/
-
-# Build outputs
+```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
 dist/
 build/
 target/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
+# Dependencies
+.venv/
 venv/
-.venv/
-.ENV
-.ENV.*
-.venv/
-.venv.*
-.env
-.env.*
-.ENV.*
+node_modules/
+.julia/
+zig*/
+.mypy_cache/
+.pytest_cache/
+.gradle/
 
-# Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
+*.swo
 
-# IDE
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
-# OS
+# OS specific
 .DS_Store
 Thumbs.db
 
@@ -43,7 +44,7 @@ coverage/
 htmlcov/
 .coverage
 
-# Compressed
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -66,21 +67,4 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# MyPy
-.mypy_cache/
-
-# PyTest
-.pytest_cache/
-
-# Gradle
-.gradle/
-
-# Temporary files
-*.tmp
-*~
 ```
-
-Wait, let me reconsider this. The only modified file is `client/src/Board.tsx`, which is a TypeScript React component file. This appears to be just a source code change without any build artifacts, dependencies, or temporary files in the change list.
-
-(empty)
