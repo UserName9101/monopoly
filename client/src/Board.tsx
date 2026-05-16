@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PieceToken, type PieceId } from "./components/PieceSelector";
-import cornerSvg from "./pictures/corner.svg";
-import nonCornerSvg from "./pictures/non-corner.svg";
+import cellImages from "./pictures";
 
 const CORNER = 100;
 const CELL = 55;
@@ -281,7 +280,7 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 >
 {hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))}>{stripText}</div>}
 <img
-src={isCorner ? cornerSvg : nonCornerSvg}
+src={cellImages[i]}
 alt=""
 style={{
 position: "absolute",
