@@ -125,9 +125,35 @@ export function handleSpecialCellEffects(room: Room, io: Server): "PAY" | "JAIL"
     // ====================== BUS TICKET CELL ======================
     if (cell.type === "SPECIAL" && cell.action === "busTicket") {
         if (room.busTicketsDeck > 0) {
+            // Вычисляем номер вытягиваемого билета (индекс от 0 до busTicketsDeck-1)
+            const ticketIndex = room.busTicketsDeck - 1; // берём последний билет из колоды
+            
+            // Проверяем, является ли билет меченым
+            const isMarked = room.markedTicketIndices.has(ticketIndex);
+            
             curr.busTickets = (curr.busTickets || 0) + 1;
             room.busTicketsDeck--;
-            log(`${pName} вытянул билет на автобус! (Осталось в колоде: ${room.busTicketsDeck})`);
+            
+            if (isMarked) {
+                // Активируем эффект меченого билета: сгорают все билеты у всех игроков
+                log(`${pName} вытянул МЕЧЕНЫЙ билет! Все билеты сгорают!`);
+                
+                for (const player of gs.players) {
+                    if (player.busTickets > 0) {
+                        player.busTickets = 0;
+                    }
+                }
+                
+                // У текущего игрока остаётся только один меченый билет
+                curr.busTickets = 1;
+                
+                io.to(room.id).emit("game_log", { 
+                    text: `🎫 МЕЧЕНЫЙ БИЛЕТ! У всех игроков билеты аннулированы. У ${pName} остался только 1 меченый билет.`, 
+                    isSystem: true 
+                });
+            } else {
+                log(`${pName} вытянул билет на автобус! (Осталось в колоде: ${room.busTicketsDeck})`);
+            }
         } else {
             log(`${pName} попал на Билет на автобус, но колода пуста. Место работает как бесплатная парковка.`);
         }
