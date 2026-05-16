@@ -284,10 +284,10 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
   alt=""
   style={{
     position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",   // было: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? CELL : "100%"
-    height: "100%",  // было: (i >= 14 && i <= 25) || (i >= 40 && i <= 51) ? CELL : "100%"
+    top: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${(CELL - CORNER) / 2}px` : 0,
+    left: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${(CORNER - CELL) / 2}px` : 0,
+    width: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${CORNER}px` : "100%",
+    height: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${CELL}px` : "100%",
     objectFit: "contain",
     pointerEvents: "none",
     zIndex: 2,
