@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { PieceToken, type PieceId } from "./components/PieceSelector";
-import cornerImage from "./pictures/corner.svg?url";
-import nonCornerImage from "./pictures/non-corner.svg?url";
 
 const CORNER = 100;
 const CELL = 55;
@@ -302,61 +300,6 @@ return <PieceToken key={p.userId} pieceId={pieceId} color={PLAYER_COLORS[idx % P
 </div>
 </div>
 );
-})}
-{/* Слой изображений клеток — между клетками и игроками */}
-{board.map((cell, i) => {
-const isCorner = CORNER_INDICES.includes(i);
-const cellStyle = getCellStyle(i);
-const cellWidth = typeof cellStyle.width === 'number' ? cellStyle.width : CELL;
-const cellHeight = typeof cellStyle.height === 'number' ? cellStyle.height : CELL;
-const cellLeft = typeof cellStyle.left === 'number' ? cellStyle.left : 0;
-const cellTop = typeof cellStyle.top === 'number' ? cellStyle.top : 0;
-
-if (isCorner) {
-  return (
-    <div
-      key={`image-${i}`}
-      style={{
-        position: "absolute",
-        top: cellTop,
-        left: cellLeft,
-        width: cellWidth,
-        height: cellHeight,
-        backgroundImage: `url(${cornerImage})`,
-        backgroundSize: "contain",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        zIndex: 50,
-        pointerEvents: "none",
-      }}
-    />
-  );
-} else {
-  const isTopEdge = i >= 1 && i <= 12;
-  const isBottomEdge = i >= 27 && i <= 38;
-  const needsRotation = isTopEdge || isBottomEdge;
-  
-  return (
-    <div
-      key={`image-${i}`}
-      style={{
-        position: "absolute",
-        left: cellLeft,
-        top: cellTop,
-        width: cellWidth,
-        height: cellHeight,
-        backgroundImage: `url(${nonCornerImage})`,
-        backgroundSize: "contain",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        zIndex: 50,
-        pointerEvents: "none",
-        transform: needsRotation ? "rotate(-90deg)" : undefined,
-        transformOrigin: "center center",
-      }}
-    />
-  );
-}
 })}
 <div style={{ position: "absolute", top: CORNER, left: CORNER, width: BOARD_SIZE - CORNER * 2, height: BOARD_SIZE - CORNER * 2, pointerEvents: "none", backgroundColor: '#121212', borderRadius: 0 }} />
 {gameState?.players?.map((player: any, idx: number) => {
