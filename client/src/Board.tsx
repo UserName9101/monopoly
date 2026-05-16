@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PieceToken, type PieceId } from "./components/PieceSelector";
+import cornerImage from "./pictures/угол_1.svg";
+import nonCornerImage from "./pictures/не-угол_1.svg";
 
 const CORNER = 100;
 const CELL = 55;
@@ -256,6 +258,60 @@ const contentPadding = hasStrip ? (i >= 1 && i <= 12 ? `${STRIP_SIZE + 2}px 2px 
 const displayValue = calculateRentDisplay(cell, board, cell.ownerId || '');
 const priceValue = cell.price ?? 0;
 const stripText = formatStripText(priceValue, displayValue);
+
+// Изображение клетки
+const needsImage = true;
+let imageStyle: React.CSSProperties | undefined;
+let imageElement: JSX.Element | null = null;
+
+if (needsImage) {
+  if (isCorner) {
+    // Угловая клетка — просто центрируем изображение
+    imageStyle = {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: CORNER,
+      height: CORNER,
+      backgroundImage: `url(${cornerImage})`,
+      backgroundSize: "contain",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+      zIndex: 2,
+      pointerEvents: "none",
+    };
+    imageElement = <div style={imageStyle} />;
+  } else {
+    // Промежуточная клетка
+    const isTopEdge = i >= 1 && i <= 12;
+    const isBottomEdge = i >= 27 && i <= 38;
+    const needsRotation = isTopEdge || isBottomEdge;
+    
+    const cellStyle = getCellStyle(i);
+    const cellWidth = typeof cellStyle.width === 'number' ? cellStyle.width : CELL;
+    const cellHeight = typeof cellStyle.height === 'number' ? cellStyle.height : CELL;
+    const cellLeft = typeof cellStyle.left === 'number' ? cellStyle.left : 0;
+    const cellTop = typeof cellStyle.top === 'number' ? cellStyle.top : 0;
+    
+    imageStyle = {
+      position: "absolute",
+      left: cellLeft,
+      top: cellTop,
+      width: cellWidth,
+      height: cellHeight,
+      backgroundImage: `url(${nonCornerImage})`,
+      backgroundSize: "contain",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+      zIndex: 2,
+      pointerEvents: "none",
+      transform: needsRotation ? "rotate(-90deg)" : undefined,
+      transformOrigin: "center center",
+    };
+    imageElement = <div style={imageStyle} />;
+  }
+}
+
 return (
 <div
 key={cell.position ?? i}
@@ -282,6 +338,7 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
     <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} position={i} />
   </div>
 )}
+{imageElement}
 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
 <div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
 {cell.isMortgaged && (
