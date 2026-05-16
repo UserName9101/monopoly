@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PieceToken, type PieceId } from "./components/PieceSelector";
+import cornerSvg from "./pictures/corner.svg";
+import nonCornerSvg from "./pictures/non-corner.svg";
 
 const CORNER = 100;
 const CELL = 55;
@@ -278,12 +280,26 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
 }}
 >
 {hasStrip && <div style={getStripStyle(i, getGroupColor(cell.group))}>{stripText}</div>}
+<img
+src={isCorner ? cornerSvg : nonCornerSvg}
+alt=""
+style={{
+position: "absolute",
+top: 0,
+left: 0,
+width: "100%",
+height: "100%",
+objectFit: "contain",
+pointerEvents: "none",
+zIndex: 2,
+}}
+/>
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
   <div style={getInnerEdgeStyle(i)}>
     <BuildingStars houses={cell.houses} hasDepot={cell.hasDepot} position={i} />
   </div>
 )}
-<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", flex: 1 }}>
+<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", height: "100%", position: "relative", zIndex: 3 }}>
 <div style={{ fontWeight: 600, fontSize: isCorner ? 10 : 8, lineHeight: 1.1, wordBreak: "break-word", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: ownerColor && ['h','g','e','d'].includes(ownerColor?.toLowerCase()) ? '#fff' : '#333' }}>{cell.name}</div>
 {cell.isMortgaged && (
   <span style={{ fontSize: 8, color: '#dc3545', fontWeight: 'bold', marginTop: 1 }}>
@@ -291,7 +307,7 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
   </span>
 )}
 </div>
-<div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 1 }}>
+<div style={{ position: "absolute", bottom: 4, left: 4, display: "flex", gap: 2, flexWrap: "wrap", zIndex: 10 }}>
 {occupants.map((p: any) => {
 const idx = players.findIndex((pl: any) => pl.userId === p.userId);
 const pieceId = roomPieces[p.userId] || 'hat';
