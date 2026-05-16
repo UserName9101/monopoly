@@ -284,14 +284,15 @@ backgroundImage: cell.isMortgaged ? 'repeating-linear-gradient(45deg, transparen
   alt=""
   style={{
     position: "absolute",
-    top: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${(CELL - CORNER) / 2}px` : 0,
-    left: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${(CORNER - CELL) / 2}px` : 0,
+    top: 0,
+    left: 0,
     width: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${CORNER}px` : "100%",
     height: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? `${CELL}px` : "100%",
     objectFit: "contain",
     pointerEvents: "none",
     zIndex: 2,
     transform: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? 'rotate(-90deg)' : undefined,
+    transformOrigin: (i >= 1 && i <= 12) || (i >= 27 && i <= 38) ? 'top left' : undefined,
   }}
 />
 {hasStrip && !isCorner && (cell.houses || cell.hasDepot) && (
