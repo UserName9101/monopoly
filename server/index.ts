@@ -155,6 +155,11 @@ if (gi !== -1) {
 room.gameState.players.splice(gi, 1);
 if (room.gameState.currentPlayerIndex >= room.gameState.players.length) room.gameState.currentPlayerIndex = 0;
 }
+// Очищаем выбор фишки вышедшего игрока
+if (room.roomPieces && room.roomPieces[userId]) {
+delete room.roomPieces[userId];
+io.to(roomId).emit("room_pieces", room.roomPieces);
+}
 if (room.players.length === 0) { rooms.delete(roomId); }
 else {
 const h = room.players.find(p => p.isOnline);
@@ -1162,6 +1167,11 @@ socket.on("disconnect", () => {
   for (const [rid, r] of rooms.entries()) {
     const p = r.players.find(pl => pl.socketId === socket.id);
     if (p) {
+      // Если игрок в лобби - очищаем его фишку при дисконнекте
+      if (r.status === "LOBBY" && r.roomPieces && r.roomPieces[p.userId]) {
+        delete r.roomPieces[p.userId];
+        io.to(rid).emit("room_pieces", r.roomPieces);
+      }
       p.isOnline = false;
       io.to(rid).emit("room_updated", getSafeRoom(r));
       break;
